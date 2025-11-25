@@ -112,7 +112,7 @@ export default class JukeboxArea extends InteractableArea {
       throw new Error('Not implemented');
     }
     if (command.type === 'QueueSong') {
-      const song = this._idToSong(command.id, command.player);
+      const song = this._idToSong(command.youtubeId, command.player);
       // TODO: Respond with an error if we do not have a song
       if (song) {
         this._queueSong(song);

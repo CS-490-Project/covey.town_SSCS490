@@ -15,9 +15,14 @@ export type TownJoinResponse = {
   isPubliclyListed: boolean;
   /** Current state of interactables in this town */
   interactables: TypedInteractable[];
-}
+};
 
-export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'JukeboxArea';
+export type InteractableType =
+  | "ConversationArea"
+  | "ViewingArea"
+  | "TicTacToeArea"
+  | "ConnectFourArea"
+  | "JukeboxArea";
 export interface Interactable {
   type: InteractableType;
   id: InteractableID;
@@ -27,11 +32,11 @@ export interface Interactable {
 /*
  * Type that represents a single song used by backend and frontend
  * Add more parameters as needed
-*/
+ */
 export type Song = {
   youtubeId: string;
   thumbnail: string;
-  // Stored in ms. 
+  // Stored in ms.
   // Can be undefined because we need an extra API call to retrieve it, and do
   // not need it for search results.
   duration: number | undefined;
@@ -40,7 +45,7 @@ export type Song = {
   queuedBy?: Player;
   // Stored in ms since Unix epoch UTC (what Date.now() returns)
   startedAt?: number;
-}
+};
 
 export interface JukeboxArea extends Interactable {
   songQueue: Song[];
@@ -50,18 +55,18 @@ export interface JukeboxArea extends Interactable {
 export type TownSettingsUpdate = {
   friendlyName?: string;
   isPubliclyListed?: boolean;
-}
+};
 
-export type Direction = 'front' | 'back' | 'left' | 'right';
+export type Direction = "front" | "back" | "left" | "right";
 
 export type PlayerID = string;
 export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
-};
+}
 
-export type XY = { x: number, y: number };
+export type XY = { x: number; y: number };
 
 export interface PlayerLocation {
   /* The CENTER x coordinate of this player's location */
@@ -72,7 +77,7 @@ export interface PlayerLocation {
   rotation: Direction;
   moving: boolean;
   interactableID?: string;
-};
+}
 export type ChatMessage = {
   author: string;
   sid: string;
@@ -83,13 +88,13 @@ export type ChatMessage = {
 
 export interface ConversationArea extends Interactable {
   topic?: string;
-};
+}
 export interface BoundingBox {
   x: number;
   y: number;
   width: number;
   height: number;
-};
+}
 
 export interface ViewingArea extends Interactable {
   video?: string;
@@ -97,13 +102,17 @@ export interface ViewingArea extends Interactable {
   elapsedTimeSec: number;
 }
 
-export type GameStatus = 'IN_PROGRESS' | 'WAITING_TO_START' | 'OVER' | 'WAITING_FOR_PLAYERS';
+export type GameStatus =
+  | "IN_PROGRESS"
+  | "WAITING_TO_START"
+  | "OVER"
+  | "WAITING_FOR_PLAYERS";
 /**
  * Base type for the state of a game
  */
 export interface GameState {
   status: GameStatus;
-} 
+}
 
 /**
  * Type for the state of a game that can be won
@@ -127,7 +136,7 @@ export type TicTacToeGridPosition = 0 | 1 | 2;
  * Type for a move in TicTacToe
  */
 export interface TicTacToeMove {
-  gamePiece: 'X' | 'O';
+  gamePiece: "X" | "O";
   row: TicTacToeGridPosition;
   col: TicTacToeGridPosition;
 }
@@ -182,7 +191,7 @@ export type ConnectFourRowIndex = 0 | 1 | 2 | 3 | 4 | 5;
  */
 export type ConnectFourColIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-export type ConnectFourColor = 'Red' | 'Yellow';
+export type ConnectFourColor = "Red" | "Yellow";
 
 export type InteractableID = string;
 export type GameInstanceID = string;
@@ -239,25 +248,34 @@ interface InteractableCommandBase {
   type: string;
 }
 
-export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | GameMoveCommand<ConnectFourMove> | StartGameCommand | LeaveGameCommand
-| SearchSongCommand | QueueSongCommand | InitiateSongSkipVoteCommand | VoteForSongSkipCommand;
-export interface ViewingAreaUpdateCommand  {
-  type: 'ViewingAreaUpdate';
+export type InteractableCommand =
+  | ViewingAreaUpdateCommand
+  | JoinGameCommand
+  | GameMoveCommand<TicTacToeMove>
+  | GameMoveCommand<ConnectFourMove>
+  | StartGameCommand
+  | LeaveGameCommand
+  | SearchSongCommand
+  | QueueSongCommand
+  | InitiateSongSkipVoteCommand
+  | VoteForSongSkipCommand;
+export interface ViewingAreaUpdateCommand {
+  type: "ViewingAreaUpdate";
   update: ViewingArea;
 }
 export interface JoinGameCommand {
-  type: 'JoinGame';
+  type: "JoinGame";
 }
 export interface LeaveGameCommand {
-  type: 'LeaveGame';
+  type: "LeaveGame";
   gameID: GameInstanceID;
 }
 export interface StartGameCommand {
-  type: 'StartGame';
+  type: "StartGame";
   gameID: GameInstanceID;
 }
 export interface GameMoveCommand<MoveType> {
-  type: 'GameMove';
+  type: "GameMove";
   gameID: GameInstanceID;
   move: MoveType;
 }
@@ -265,40 +283,45 @@ export interface GameMoveCommand<MoveType> {
  * Will need to check for an empty search and return error
  */
 export interface SearchSongCommand {
-  type: 'SearchSong';
+  type: "SearchSong";
   title?: string;
   artist?: string;
   durationUpperBound?: number;
   durationLowerBound?: number;
 }
 export interface QueueSongCommand {
-  type: 'QueueSong';
-  id: string;
+  type: "QueueSong";
+  youtubeId: string;
   player: Player;
 }
 export interface InitiateSongSkipVoteCommand {
-  type: 'InitiateSongSkipVote';
+  type: "InitiateSongSkipVote";
   song: Song;
   player: Player;
 }
 export interface VoteForSongSkipCommand {
-  type: 'VoteForSongSkip';
+  type: "VoteForSongSkip";
   song: Song;
   skipThisSong: boolean;
 }
-export type InteractableCommandReturnType<CommandType extends InteractableCommand> = 
-  CommandType extends JoinGameCommand ? { gameID: string}:
-  CommandType extends ViewingAreaUpdateCommand ? undefined :
-  CommandType extends GameMoveCommand<TicTacToeMove> ? undefined :
-  CommandType extends LeaveGameCommand ? undefined :
-  never;
+export type InteractableCommandReturnType<
+  CommandType extends InteractableCommand
+> = CommandType extends JoinGameCommand
+  ? { gameID: string }
+  : CommandType extends ViewingAreaUpdateCommand
+  ? undefined
+  : CommandType extends GameMoveCommand<TicTacToeMove>
+  ? undefined
+  : CommandType extends LeaveGameCommand
+  ? undefined
+  : never;
 
 export type InteractableCommandResponse<MessageType> = {
   commandID: CommandID;
   interactableID: InteractableID;
   error?: string;
   payload?: InteractableCommandResponseMap[MessageType];
-}
+};
 
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
@@ -316,5 +339,7 @@ export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
-  interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
+  interactableCommand: (
+    command: InteractableCommand & InteractableCommandBase
+  ) => void;
 }
