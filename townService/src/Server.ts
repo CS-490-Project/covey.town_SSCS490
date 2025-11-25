@@ -11,6 +11,7 @@ import TownsStore from './lib/TownsStore';
 import { ClientToServerEvents, ServerToClientEvents } from './types/CoveyTownSocket';
 import { TownsController } from './town/TownsController';
 import { logError } from './Utils';
+import { auth, youtube } from '@googleapis/youtube';
 
 // Create the server instances
 const app = Express();
@@ -66,6 +67,29 @@ app.use(
   },
 );
 
+const yt_api_key = process.env.YOUTUBE_DATA_API_KEY;
+youtube('v3')
+  .videos.list({
+    part: ['snippet'],
+    maxResults: 25,
+    id: ['UNYqwpx7Cys'],
+    videoCategoryId: '10',
+    auth: yt_api_key,
+  })
+  .then(it => console.log(it.data.items ? it.data.items[0].snippet : null));
+
+youtube('v3')
+  .search.list({
+    part: ['snippet'],
+    maxResults: 25,
+    order: 'relevance',
+    q: 'underscores music',
+    type: ['video'],
+    videoCategoryId: '10',
+    videoDuration: 'short',
+    auth: yt_api_key,
+  })
+  .then(it => console.log(it.data.items ? it.data.items[0].snippet : null));
 // Start the configured server, defaulting to port 8081 if $PORT is not set
 server.listen(process.env.PORT || 8081, () => {
   const address = server.address() as AddressInfo;
