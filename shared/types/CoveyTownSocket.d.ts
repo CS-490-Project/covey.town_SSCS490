@@ -29,10 +29,12 @@ export interface Interactable {
  * Add more parameters as needed
 */
 export type Song = {
-  url: string;
+  youtubeId: string;
   thumbnail: string;
-  // Stored in ms
-  duration: number;
+  // Stored in ms. 
+  // Can be undefined because we need an extra API call to retrieve it, and do
+  // not need it for search results.
+  duration: number | undefined;
   title: string;
   artist: string;
   queuedBy?: Player;
@@ -271,7 +273,7 @@ export interface SearchSongCommand {
 }
 export interface QueueSongCommand {
   type: 'QueueSong';
-  url: string;
+  id: string;
   player: Player;
 }
 export interface InitiateSongSkipVoteCommand {

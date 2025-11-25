@@ -31,7 +31,7 @@ describe('JukeboxArea', () => {
   const occupants: PlayerID[] = [];
 
   const testSong: Song = {
-    url: '',
+    youtubeId: '',
     duration: 1000,
     thumbnail: '',
     title: '',
@@ -131,7 +131,7 @@ describe('JukeboxArea', () => {
     it('Adds a song to the queue. For the first song added, sets its startedAt and set up songEnd callback, otherwise do nothing. Check that interactableUpdate event is sent.', () => {
       // @ts-expect-error (access to private method)
       testArea._queueSong(testSong);
-      expect(testArea.songQueue[0].url).toEqual(testSong.url);
+      expect(testArea.songQueue[0].youtubeId).toEqual(testSong.youtubeId);
       expect(testArea.songQueue[0].artist).toEqual(testSong.artist);
       expect(testArea.songQueue[0].title).toEqual(testSong.title);
       expect(testArea.songQueue[0].duration).toEqual(testSong.duration);
@@ -140,7 +140,9 @@ describe('JukeboxArea', () => {
 
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
       expect(lastEmittedUpdate.id).toEqual(id);
-      expect((lastEmittedUpdate as JukeboxAreaModel).songQueue[0].url).toEqual(testSong.url);
+      expect((lastEmittedUpdate as JukeboxAreaModel).songQueue[0].youtubeId).toEqual(
+        testSong.youtubeId,
+      );
 
       jest.runOnlyPendingTimers();
       expect(testArea.songQueue).toHaveLength(0);
@@ -159,13 +161,13 @@ describe('JukeboxArea', () => {
       // @ts-expect-error (access to private method)
       testArea._queueSong(testSong);
 
-      expect(testArea.songQueue[0].url).toEqual(testSong.url);
+      expect(testArea.songQueue[0].youtubeId).toEqual(testSong.youtubeId);
       expect(testArea.songQueue[0].artist).toEqual(testSong.artist);
       expect(testArea.songQueue[0].title).toEqual(testSong.title);
       expect(testArea.songQueue[0].duration).toEqual(testSong.duration);
       expect(testArea.songQueue[0].thumbnail).toEqual(testSong.thumbnail);
       expect(testArea.songQueue[0].startedAt).toBeGreaterThan(0);
-      expect(testArea.songQueue[1].url).toEqual(testSong.url);
+      expect(testArea.songQueue[1].youtubeId).toEqual(testSong.youtubeId);
       expect(testArea.songQueue[1].artist).toEqual(testSong.artist);
       expect(testArea.songQueue[1].title).toEqual(testSong.title);
       expect(testArea.songQueue[1].duration).toEqual(testSong.duration);
@@ -295,6 +297,44 @@ describe('JukeboxArea', () => {
       testArea._handleVote();
       expect(testArea.songQueue).toHaveLength(songQueueLength - 1);
       expect(testArea.skipVotes).toBe(0);
+    });
+  });
+
+  describe('_parseDuration', () => {
+    it('parses multiday durations correctly', () => {
+      for (let i = 0; i < 10; i++) {
+        const days = Math.floor(Math.random() * 30) + 1;
+        const hours = Math.floor(Math.random() * 24);
+        const minutes = Math.floor(Math.random() * 60);
+        const seconds = Math.floor(Math.random() * 60);
+        const result = (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+
+        // @ts-expect-error (access to private method)
+        expect(testArea._parseDuration(`P${days}DT${hours}H${minutes}M${seconds}S`)).toBe(result);
+      }
+    });
+
+    it('parses multihour durations correctly', () => {
+      for (let i = 0; i < 10; i++) {
+        const hours = Math.floor(Math.random() * 23) + 1;
+        const minutes = Math.floor(Math.random() * 60);
+        const seconds = Math.floor(Math.random() * 60);
+        const result = ((hours * 60 + minutes) * 60 + seconds) * 1000;
+
+        // @ts-expect-error (access to private method)
+        expect(testArea._parseDuration(`PT${hours}H${minutes}M${seconds}S`)).toBe(result);
+      }
+    });
+
+    it('parses subhour durations correctly', () => {
+      for (let i = 0; i < 10; i++) {
+        const minutes = Math.floor(Math.random() * 60);
+        const seconds = Math.floor(Math.random() * 60);
+        const result = (minutes * 60 + seconds) * 1000;
+
+        // @ts-expect-error (access to private method)
+        expect(testArea._parseDuration(`PT${minutes}M${seconds}S`)).toBe(result);
+      }
     });
   });
 });
