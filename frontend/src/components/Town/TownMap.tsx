@@ -6,7 +6,7 @@ import SocialSidebar from '../SocialSidebar/SocialSidebar';
 import NewConversationModal from './interactables/NewCoversationModal';
 import TownGameScene from './TownGameScene';
 import GameAreaWrapper from './interactables/GamesArea';
-import JukeboxAreaWrapper from './interactables/JukeboxAreaMusic';
+import JukeboxAreaWrapper from './interactables/Jukebox/JukeboxAreaMusic';
 import useChatContext from '../VideoCall/VideoFrontend/hooks/useChatContext/useChatContext';
 import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWindow';
 import clsx from 'clsx';

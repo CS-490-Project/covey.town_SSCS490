@@ -19,12 +19,12 @@ import {
   SliderFilledTrack,
   SliderThumb,
 } from '@chakra-ui/react';
-import useTownController from '../../../hooks/useTownController';
+import useTownController from '../../../../hooks/useTownController';
 import React, { useState, useCallback } from 'react';
-import { InteractableID } from '../../../types/CoveyTownSocket';
-import { useInteractable } from '../../../classes/TownController';
+import { InteractableID } from '../../../../types/CoveyTownSocket';
+import { useInteractable } from '../../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
-import { useAudio } from '../../../contexts/AudioContext';
+import { useAudio } from '../../../../contexts/AudioContext';
 
 export type SkipVoteButtonProps = {
   visible: boolean;
