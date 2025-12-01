@@ -108,7 +108,7 @@ export default class JukeboxArea extends InteractableArea {
     command: CommandType,
   ): InteractableCommandReturnType<CommandType> {
     if (command.type === 'SearchSong') {
-      if (command.query.length == 0) {
+      if (command.query.length === 0) {
         throw new InvalidParametersError('Empty search query');
       }
 
@@ -142,7 +142,7 @@ export default class JukeboxArea extends InteractableArea {
         auth: this._youtubeAPIKey,
       })
       .then(result => {
-        const items = result.data.items;
+        const { items } = result.data;
         if (!items) {
           return;
         }
@@ -187,7 +187,7 @@ export default class JukeboxArea extends InteractableArea {
         auth: this._youtubeAPIKey,
       })
       .then(result => {
-        const items = result.data.items;
+        const { items } = result.data;
         // How I yearn for monads...
         if (!items || items.length === 0) {
           return;
