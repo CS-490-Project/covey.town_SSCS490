@@ -28,6 +28,8 @@ export default class JukeboxArea extends InteractableArea {
 
   private _songEndTimeout: NodeJS.Timeout | undefined;
 
+  private _broadcastEmitter: TownEmitter;
+
   private _town: HasPlayerCount;
 
   private _youtubeAPIKey: string | undefined;
@@ -48,6 +50,7 @@ export default class JukeboxArea extends InteractableArea {
     super(id, coordinates, townEmitter);
     this.songQueue = songQueue;
     this.skipVotes = skipVotes;
+    this._broadcastEmitter = townEmitter;
     this._town = town;
 
     this._youtubeAPIKey = process.env.YOUTUBE_DATA_API_KEY;
@@ -105,11 +108,11 @@ export default class JukeboxArea extends InteractableArea {
     command: CommandType,
   ): InteractableCommandReturnType<CommandType> {
     if (command.type === 'SearchSong') {
-      if (command.title == null && command.artist == null) {
-        throw new InvalidParametersError('Empty search parameters');
+      if (command.query.length == 0) {
+        throw new InvalidParametersError('Empty search query');
       }
 
-      throw new Error('Not implemented');
+      this._search(command.requesterId, command.query);
     }
     if (command.type === 'QueueSong') {
       this._queueSongById(command.youtubeId, command.player);
@@ -127,8 +130,50 @@ export default class JukeboxArea extends InteractableArea {
     throw new InvalidParametersError('Unknown command type');
   }
 
+  private _search(requesterId: string, query: string) {
+    youtube('v3')
+      .search.list({
+        part: ['snippet'],
+        maxResults: 25,
+        q: query,
+        videoCategoryId: '10',
+        type: ['video'],
+        videoDuration: 'short',
+        auth: this._youtubeAPIKey,
+      })
+      .then(result => {
+        const items = result.data.items;
+        if (!items) {
+          return;
+        }
+
+        const songs: (Song | undefined)[] = items?.map(item => {
+          const youtubeId = item.id?.videoId;
+          const thumbnail = item.snippet?.thumbnails?.default?.url;
+          const title = item.snippet?.title;
+          const artist = item.snippet?.channelTitle;
+
+          if (!youtubeId || !thumbnail || !title || !artist) {
+            return undefined;
+          }
+          return {
+            youtubeId,
+            thumbnail,
+            title,
+            artist,
+          };
+        });
+
+        this._broadcastEmitter.emit('songSearchResults', {
+          requesterId,
+          // The cast is safe because we filter out any undefined values
+          songs: songs.filter(song => song) as Song[],
+        });
+      });
+  }
+
   /**
-   * Queues a song given a YouTube ID.
+   * Queues a song asynchronously given a YouTube ID.
    * @param youtubeId the YouTube ID of the song
    * @param queuedBy the player who queued the song
    */

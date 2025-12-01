@@ -39,7 +39,7 @@ export type Song = {
   // Stored in ms.
   // Can be undefined because we need an extra API call to retrieve it, and do
   // not need it for search results.
-  duration: number | undefined;
+  duration?: number;
   title: string;
   artist: string;
   queuedBy?: Player;
@@ -279,15 +279,10 @@ export interface GameMoveCommand<MoveType> {
   gameID: GameInstanceID;
   move: MoveType;
 }
-/**
- * Will need to check for an empty search and return error
- */
 export interface SearchSongCommand {
   type: "SearchSong";
-  title?: string;
-  artist?: string;
-  durationUpperBound?: number;
-  durationLowerBound?: number;
+  requesterId: string;
+  query: string;
 }
 export interface QueueSongCommand {
   type: "QueueSong";
@@ -323,6 +318,11 @@ export type InteractableCommandResponse<MessageType> = {
   payload?: InteractableCommandResponseMap[MessageType];
 };
 
+export type SongSearchResult = {
+  requesterId: string;
+  songs: Song[];
+};
+
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -333,6 +333,7 @@ export interface ServerToClientEvents {
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
+  songSearchResults: (result: SongSearchResult) => void;
 }
 
 export interface ClientToServerEvents {
