@@ -112,11 +112,7 @@ export default class JukeboxArea extends InteractableArea {
       throw new Error('Not implemented');
     }
     if (command.type === 'QueueSong') {
-      const song = this._idToSong(command.youtubeId, command.player);
-      // TODO: Respond with an error if we do not have a song
-      if (song) {
-        this._queueSong(song);
-      }
+      this._queueSongById(command.youtubeId, command.player);
       return undefined as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'InitiateSongSkipVote') {
@@ -132,47 +128,47 @@ export default class JukeboxArea extends InteractableArea {
   }
 
   /**
-   * Converts a song url to a Song.
-   * @param url url of the song
+   * Queues a song given a YouTube ID.
+   * @param youtubeId the YouTube ID of the song
    * @param queuedBy the player who queued the song
-   * @returns The Song object, or undefined on error.
    */
-  private _idToSong(youtubeId: string, queuedBy?: Player): Song | undefined {
-    const { items } = this._executePromise(
-      youtube('v3').videos.list({
+  private _queueSongById(youtubeId: string, queuedBy?: Player) {
+    youtube('v3')
+      .videos.list({
         part: ['snippet', 'contentDetails'],
         maxResults: 25,
         id: [youtubeId],
         videoCategoryId: '10',
         auth: this._youtubeAPIKey,
-      }),
-    ).data;
+      })
+      .then(result => {
+        const items = result.data.items;
+        // How I yearn for monads...
+        if (!items || items.length === 0) {
+          return;
+        }
 
-    // How I yearn for monads...
-    if (!items || items.length === 0) {
-      return undefined;
-    }
+        const video = items[0];
 
-    const video = items[0];
+        const thumbnail = video.snippet?.thumbnails?.maxres?.url;
+        const rawDuration = video.contentDetails?.duration;
+        const title = video.snippet?.title;
+        const artist = video.snippet?.channelTitle;
 
-    const thumbnail = video.snippet?.thumbnails?.maxres?.url;
-    const rawDuration = video.contentDetails?.duration;
-    const title = video.snippet?.title;
-    const artist = video.snippet?.channelTitle;
+        // Or at least early return ? like in Rust...
+        if (!thumbnail || !rawDuration || !title || !artist) {
+          return;
+        }
 
-    // Or at least early return ? like in Rust...
-    if (!thumbnail || !rawDuration || !title || !artist) {
-      return undefined;
-    }
-
-    return {
-      youtubeId,
-      thumbnail,
-      duration: this._parseDuration(rawDuration),
-      title,
-      artist,
-      queuedBy,
-    };
+        this._queueSong({
+          youtubeId,
+          thumbnail,
+          duration: this._parseDuration(rawDuration),
+          title,
+          artist,
+          queuedBy,
+        });
+      });
   }
 
   /**
@@ -244,25 +240,6 @@ export default class JukeboxArea extends InteractableArea {
 
     this._emitAreaChanged();
     setTimeout(() => this._periodicEmitAreaChanged(), periodMs);
-  }
-
-  /**
-   * Execute a Promise synchronously. This allows us to run async code in a
-   * sync context.
-   * @param promise the Promise to execute
-   * @returns the return value of the Promise
-   */
-  private _executePromise<A>(promise: Promise<NonNullable<A>>): NonNullable<A> {
-    let value: A | null = null;
-    promise.then(it => {
-      value = it;
-    });
-
-    while (!value) {
-      // wait until the Promise resolves
-    }
-
-    return value;
   }
 
   /**
