@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import MuteButton from './interactables/MuteButton';
 import { AudioProvider } from '../../contexts/AudioContext';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
+import { YTAudioProvider } from '../../contexts/YTAudioContext';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -85,20 +86,25 @@ export default function TownMap(): JSX.Element {
   }, [coveyTownController]);
 
   return (
-    <div id='app-container'>
-      <NewConversationModal />
-      <GameAreaWrapper />
-      <AudioProvider>
-        <JukeboxAreaWrapper />
-        <MuteButton />
-      </AudioProvider>
-      <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
-        <ChatWindow />
-      </aside>
-      <div id='map-container' />
-      <div id='social-container'>
-        <SocialSidebar />
-      </div>
+    <div id='music-container'>
+      <YTAudioProvider>
+        <div id='app-container'>
+          <NewConversationModal />
+          <GameAreaWrapper />
+          <AudioProvider>
+            <JukeboxAreaWrapper />
+            <MuteButton />
+          </AudioProvider>
+          <aside
+            className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
+            <ChatWindow />
+          </aside>
+          <div id='map-container' />
+          <div id='social-container'>
+            <SocialSidebar />
+          </div>
+        </div>
+      </YTAudioProvider>
     </div>
   );
 }
