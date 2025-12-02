@@ -1,8 +1,6 @@
 import { IconButton } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAudio } from '../../../contexts/AudioContext';
-
-// Inline SVG icons as components
 
 /**
  * SVG Icons from Google Material Design Icons
@@ -23,17 +21,43 @@ const VolumeMuteIcon = () => (
   </svg>
 );
 
+/**
+ * MuteButton Component
+ * 
+ * A global mute button for the Jukebox feature that appears in the top-right
+ * corner of the Covey Town interface.
+ * 
+ * Features:
+ * - Manually toggle mute state for jukebox audio
+ * - Syncs with AudioContext for consistent state across components
+ * - Automatically mutes when video call is active (via VideoCallAutoMute)
+ * - Visual feedback with icon changes
+ * 
+ * @returns A fixed-position IconButton that toggles mute state
+ */
 export default function MuteButton(): JSX.Element {
-  const { audioRef } = useAudio();
-  const [isMuted, setIsMuted] = useState(false);
+  const { audioRef, isMuted, setIsMuted } = useAudio();
 
   const handleMuteToggle = () => {
+    const newMutedState = !isMuted;
+    
     if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-      console.log('Mute button clicked. Muted:', !isMuted);
+      audioRef.current.muted = newMutedState;
     }
+    
+    setIsMuted(newMutedState);
+    
+    console.log('Mute button clicked. Muted:', newMutedState);
   };
+
+  // Sync audio element with mute state changes (from auto-mute or manual toggle)
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+      console.log('Audio element muted state synced:', isMuted);
+    }
+  }, [isMuted, audioRef]);
+
   return (
     <IconButton
       icon={isMuted ? <VolumeMuteIcon /> : <VolumeUpIcon />}

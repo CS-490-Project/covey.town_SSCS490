@@ -20,7 +20,7 @@ import {
   SliderThumb,
 } from '@chakra-ui/react';
 import useTownController from '../../../hooks/useTownController';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { InteractableID } from '../../../types/CoveyTownSocket';
 import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
@@ -279,8 +279,16 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [currentSong, setCurrentSong] = useState('No songs in playlist');
-  const [isDefaultMode, setIsDefaultMode] = useState(false);
+  const [currentSong, setCurrentSong] = useState('Default Background Music');
+  const [isDefaultMode, setIsDefaultMode] = useState(true);
+
+
+  useEffect(() => {
+    if (audioRef.current && isDefaultMode) {
+      audioRef.current.src = '/assets/default-music.mp3';
+    }
+  }, [audioRef]);
+
 
   // Audio event handlers
   const handleTimeUpdate = useCallback(() => {

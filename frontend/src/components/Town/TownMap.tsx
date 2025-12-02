@@ -11,6 +11,7 @@ import useChatContext from '../VideoCall/VideoFrontend/hooks/useChatContext/useC
 import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWindow';
 import clsx from 'clsx';
 import MuteButton from './interactables/MuteButton';
+import VideoCallAutoMute from './interactables/VideoCallAutoMute';
 import { AudioProvider } from '../../contexts/AudioContext';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 
@@ -91,6 +92,7 @@ export default function TownMap(): JSX.Element {
       <AudioProvider>
         <JukeboxAreaWrapper />
         <MuteButton />
+        <VideoCallAutoMute/>
       </AudioProvider>
       <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
         <ChatWindow />

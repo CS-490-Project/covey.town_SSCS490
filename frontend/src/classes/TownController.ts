@@ -736,6 +736,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * Determine which players are "nearby" -- that they should be included in our video call
    */
   public nearbyPlayers(): PlayerController[] {
+    console.log('Calculating nearby players');
     const isNearby = (p: PlayerController) => {
       if (p.location && this.ourPlayer.location) {
         if (this.ourPlayer.location.interactableID || p.location.interactableID) {
