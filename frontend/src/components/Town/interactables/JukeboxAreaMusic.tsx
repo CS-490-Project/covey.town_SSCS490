@@ -234,9 +234,11 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
   );
 }
 
+/*
 function onPlayerReady(event: YT.PlayerEvent) {
   event.target.playVideo();
 }
+
 
 // This function creates a youtube player and returns the reference to player and its container
 export function useYouTubePlayer(videoId: string) {
@@ -279,17 +281,9 @@ export function useYouTubePlayer(videoId: string) {
     };
   }, []);
 
-  //Player already exists, song id is changed
-  /*
-  useEffect(() => {
-    if (playerRef.current) {
-      playerRef.current.loadVideoById(videoId);
-    }
-  }, [videoId]);
-  */
-
   return { containerRef, playerRef };
 }
+*/
 
 /**
  * JukeboxAreaWrapper
@@ -340,10 +334,10 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const jukeboxArea = useInteractable<JukeboxAreaInteractable>('jukeboxArea');
   let jukeboxAreaController = null;
   if (jukeboxArea) {
-    jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(jukeboxArea.id); 
+    jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(jukeboxArea.id);
   }
-    const townController = useTownController();
-  
+  const townController = useTownController();
+
   /*
   // Audio state - lives here so it persists when modal closes
   const { audioRef } = useAudio();
@@ -424,7 +418,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   );
  */
 
-  // ABOVE ^ ARE CONTROLS FOR REGULAR AUDIO ELEMENT 
+  // ABOVE ^ ARE CONTROLS FOR REGULAR AUDIO ELEMENT
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
       townController.interactEnd(jukeboxArea);
@@ -436,11 +430,12 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
   // Audio state - lives here so it persists when modal closes
   const { containerRef, playerRef } = useYTAudio();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [currentSong, setCurrentSong] = useState('No songs in playlist');
   const [isDefaultMode, setIsDefaultMode] = useState(false);
+  //const [isPlaying, setIsPlaying] = useState(false);
+  //const [currentTime, setCurrentTime] = useState(0);
+  //const [duration, setDuration] = useState(0);
+  //const [ready, setReady] = useState(false);
 
   // Audio event handlers
   const handleTimeUpdate = useCallback(() => {
@@ -455,7 +450,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     }
   }, [playerRef]);
 
-    // Mode toggle
+  // Mode toggle
   const handleModeToggle = useCallback(() => {
     const newMode = !isDefaultMode;
     setIsDefaultMode(newMode);
@@ -481,7 +476,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
   }, [isDefaultMode, playerRef]);
 
-   // Playback controls
+  // Playback controls
   const handlePlayPause = useCallback(() => {
     if (!playerRef.current) return;
 
@@ -515,19 +510,19 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     [playerRef],
   );
 
-    useEffect(() => {
-      const intervalId = setInterval(() => {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
       handleTimeUpdate();
       // HANDLE SYNCHRONIZATION HERE
     }, 300); // Updates every second
 
     // Here we can set some listeners if we need them
-      return () => clearInterval(intervalId);
-    },[playerRef, handleTimeUpdate]);
+    return () => clearInterval(intervalId);
+  }, [playerRef, handleTimeUpdate]);
 
   if (jukeboxArea) {
     console.log('interactable id', jukeboxArea.id);
-   
+
     return (
       <>
         {/* Audio element lives outside the modal - persists when modal closes */}
