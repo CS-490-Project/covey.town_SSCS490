@@ -1,6 +1,7 @@
 import { IconButton } from '@chakra-ui/react';
 import React, { useEffect } from 'react';
 import { useAudio } from '../../../contexts/AudioContext';
+import { useYTAudio } from '../../../contexts/YTAudioContext';
 
 /**
  * SVG Icons from Google Material Design Icons
@@ -37,12 +38,19 @@ const VolumeMuteIcon = () => (
  */
 export default function MuteButton(): JSX.Element {
   const { audioRef, isMuted, setIsMuted } = useAudio();
+  const { playerRef } = useYTAudio();
 
   const handleMuteToggle = () => {
     const newMutedState = !isMuted;
 
     if (audioRef.current) {
       audioRef.current.muted = newMutedState;
+    }
+
+    if (newMutedState) {
+      playerRef.current.mute();
+    } else {
+      playerRef.current.unMute();
     }
 
     setIsMuted(newMutedState);
