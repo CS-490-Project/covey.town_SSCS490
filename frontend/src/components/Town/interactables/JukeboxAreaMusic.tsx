@@ -22,15 +22,24 @@ import {
 import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect } from 'react';
 import { InteractableID } from '../../../types/CoveyTownSocket';
+//import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
 import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
-import { useAudio } from '../../../contexts/AudioContext';
+//import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
+import { useYTAudio } from '../../../contexts/YTAudioContext';
 
 export type SkipVoteButtonProps = {
   visible: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
+
+declare global {
+  interface Window {
+    YT: typeof YT;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 // Props for JukeboxArea - receives control functions from parent
 type JukeboxAreaProps = {
@@ -272,91 +281,14 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
 
 export default function JukeboxAreaWrapper(): JSX.Element {
   const jukeboxArea = useInteractable<JukeboxAreaInteractable>('jukeboxArea');
+  // THIS REQUIRES SOLVING
+  /*
+  let jukeboxAreaController = null;
+  if (jukeboxArea) {
+    jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(jukeboxArea.id);
+  }
+  */
   const townController = useTownController();
-
-  // Audio state - lives here so it persists when modal closes
-  const { audioRef } = useAudio();
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentSong, setCurrentSong] = useState('Default Background Music');
-  const [isDefaultMode, setIsDefaultMode] = useState(true);
-
-  useEffect(() => {
-    if (audioRef.current && isDefaultMode) {
-      audioRef.current.src = '/assets/default-music.mp3';
-    }
-  }, [audioRef, isDefaultMode]);
-
-  // Audio event handlers
-  const handleTimeUpdate = useCallback(() => {
-    if (audioRef.current) {
-      setCurrentTime(Math.floor(audioRef.current.currentTime));
-    }
-  }, [audioRef]);
-
-  const handleLoadedMetadata = useCallback(() => {
-    if (audioRef.current) {
-      setDuration(Math.floor(audioRef.current.duration));
-    }
-  }, [audioRef]);
-
-  // Mode toggle
-  const handleModeToggle = useCallback(() => {
-    const newMode = !isDefaultMode;
-    setIsDefaultMode(newMode);
-
-    // Always pause and reset when switching modes
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      // Remove source when switching to shared mode (empty playlist)
-      if (!newMode) {
-        audioRef.current.src = '';
-      } else {
-        audioRef.current.src = '/assets/default-music.mp3';
-      }
-    }
-
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
-    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
-  }, [isDefaultMode, audioRef]);
-
-  // Playback controls
-  const handlePlayPause = useCallback(() => {
-    if (!audioRef.current) return;
-
-    // Don't allow play in shared mode if playlist is empty
-    if (!isDefaultMode) {
-      return;
-    }
-
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play();
-    setIsPlaying(!isPlaying);
-  }, [isPlaying, isDefaultMode, audioRef]);
-
-  const handleSkip = useCallback(() => {
-    if (!audioRef.current) return;
-
-    // Skip only works in default mode for now
-    if (!isDefaultMode) return;
-
-    audioRef.current.currentTime = 0;
-    setCurrentTime(0);
-  }, [isDefaultMode, audioRef]);
-
-  const handleSeek = useCallback(
-    (value: number) => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = value;
-        setCurrentTime(value);
-      }
-    },
-    [audioRef],
-  );
 
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
@@ -365,17 +297,98 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     }
   }, [townController, jukeboxArea]);
 
+  // BELOW V ARE CONTROLS FOR YT IFRAME PLAYER
+
+  // Audio state - lives here so it persists when modal closes
+  const {
+    //containerRef,
+    playerRef,
+    //ready,
+    isPlaying,
+    currentTime,
+    duration,
+    play,
+    pause,
+    seek,
+    load,
+  } = useYTAudio();
+  const [currentSong, setCurrentSong] = useState('Default Background Music');
+  const [isDefaultMode, setIsDefaultMode] = useState(true);
+
+  // Mode toggle
+  const handleModeToggle = useCallback(() => {
+    const newMode = !isDefaultMode;
+    setIsDefaultMode(newMode);
+
+    // Always pause and reset when switching modes
+    if (playerRef.current) {
+      pause();
+      seek(0);
+      // Remove source when switching to shared mode (empty playlist)
+      if (!newMode) {
+        load('dQw4w9WgXcQ');
+        /*
+        if (jukeboxAreaController) {
+          if (jukeboxAreaController.songQueue.length > 0)
+            load(jukeboxAreaController.songQueue[0].url);
+          else load('dQw4w9WgXcQ');
+        }
+        */
+      } else {
+        load('sF80I-TQiW0');
+      }
+    }
+
+    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
+  }, [isDefaultMode, load, pause, playerRef, seek /*jukeboxAreaController*/]);
+
+  // Playback controls
+  const handlePlayPause = useCallback(() => {
+    if (!playerRef.current) return;
+
+    // Don't allow play in shared mode if playlist is empty
+    if (!isDefaultMode) {
+      return;
+    }
+
+    if (isPlaying) pause();
+    else play();
+  }, [isPlaying, isDefaultMode, play, pause, playerRef]);
+
+  const handleSeek = useCallback(
+    (value: number) => {
+      if (!isDefaultMode) return;
+      seek(value);
+    },
+    [seek, isDefaultMode],
+  );
+
+  // THIS IS A PLACEHOLDER
+  // ACTUAL SKIP SHOULD HAVE A DIFFERENT LOGIC
+  const handleSkip = useCallback(() => {
+    if (!playerRef.current) return;
+
+    // Skip only works in default mode for now
+    if (!isDefaultMode) return;
+
+    seek(0);
+  }, [isDefaultMode, playerRef, seek]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // HANDLE SYNCHRONIZATION HERE
+      // I THINK ??
+    }, 300); // Updates every second
+
+    return () => clearInterval(intervalId);
+  }, [playerRef]);
+
   if (jukeboxArea) {
+    console.log('interactable id', jukeboxArea.id);
+
     return (
       <>
         {/* Audio element lives outside the modal - persists when modal closes */}
-
-        <audio
-          ref={audioRef}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-        />
 
         <Modal isOpen onClose={closeModal} closeOnOverlayClick={false} size='xl'>
           <ModalOverlay />
@@ -405,12 +418,6 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   return (
     <>
       {/* Audio element also here for when modal isn't open */}
-      <audio
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => setIsPlaying(false)}
-      />
       <SkipVoteButton visible={true} onConfirm={() => {}} onCancel={() => {}} />
     </>
   );

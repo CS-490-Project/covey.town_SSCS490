@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "types": ["jest"],
+    "types": ["jest", "youtube"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
