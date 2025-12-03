@@ -96,7 +96,7 @@ export default function TownMap(): JSX.Element {
             <JukeboxAreaWrapper />
             <MuteButton />
             <VideoCallAutoMute />
-      </AudioProvider>
+          </AudioProvider>
           <aside
             className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
             <ChatWindow />

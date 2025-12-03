@@ -21,11 +21,11 @@ import {
 } from '@chakra-ui/react';
 import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect } from 'react';
-import React, { useState, useCallback, useEffect } from 'react';
 import { InteractableID } from '../../../types/CoveyTownSocket';
-import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
+//import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
+import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
-import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
+//import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
 import { useYTAudio } from '../../../contexts/YTAudioContext';
 
 export type SkipVoteButtonProps = {
@@ -301,9 +301,9 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
   // Audio state - lives here so it persists when modal closes
   const {
-    containerRef,
+    //containerRef,
     playerRef,
-    ready,
+    //ready,
     isPlaying,
     currentTime,
     duration,
@@ -340,7 +340,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     }
 
     setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
-  }, [isDefaultMode, ready, load, pause, playerRef, seek /*jukeboxAreaController*/]);
+  }, [isDefaultMode, load, pause, playerRef, seek /*jukeboxAreaController*/]);
 
   // Playback controls
   const handlePlayPause = useCallback(() => {
@@ -353,7 +353,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
     if (isPlaying) pause();
     else play();
-  }, [ready, isPlaying, isDefaultMode, play, pause, playerRef]);
+  }, [isPlaying, isDefaultMode, play, pause, playerRef]);
 
   const handleSeek = useCallback(
     (value: number) => {
