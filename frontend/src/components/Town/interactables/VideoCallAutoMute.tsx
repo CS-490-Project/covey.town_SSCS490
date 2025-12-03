@@ -48,7 +48,7 @@ export default function VideoCallAutoMute(): null {
     // Note: We intentionally do NOT auto-unmute when leaving the call
     // The user may want to keep the audio muted even after the call ends
     // They can manually unmute using the mute button if desired
-  }, [playersInCall, setIsMuted, audioRef]);
+  }, [playersInCall, setIsMuted, audioRef, playerRef]);
 
   return null; // This component doesn't render anything
 }
