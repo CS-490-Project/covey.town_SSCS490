@@ -52,6 +52,7 @@ class Town{
     +addConversationArea(conversationAreaToAdd)
     +addListener(eventName, listener)
     +removeListener(eventName, listener)
+    +number playerCount();
 }
 
 ```
@@ -97,6 +98,7 @@ export interface ServerToClientEvents {
   conversationAreaUpdated: (conversationArea: ConversationArea) => void;
   conversationAreaDestroyed: (conversationArea: ConversationArea) => void;
   chatMessage: (message: ChatMessage) => void;
+  songSearchResults: (result: SongSearchResult) => void;
 }
 
 export interface ClientToServerEvents {

@@ -11,7 +11,7 @@ describe('JukeboxAreaController', () => {
   const townController: MockProxy<TownController> = mock<TownController>();
   const mockListeners = mock<JukeboxAreaEvents>();
   const testSong: Song = {
-    url: '',
+    youtubeId: '',
     duration: 1000,
     thumbnail: '',
     title: '',
