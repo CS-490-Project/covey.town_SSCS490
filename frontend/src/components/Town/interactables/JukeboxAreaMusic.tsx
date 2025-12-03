@@ -282,13 +282,11 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [currentSong, setCurrentSong] = useState('Default Background Music');
   const [isDefaultMode, setIsDefaultMode] = useState(true);
 
-
   useEffect(() => {
     if (audioRef.current && isDefaultMode) {
       audioRef.current.src = '/assets/default-music.mp3';
     }
-  }, [audioRef]);
-
+  }, [audioRef, isDefaultMode]);
 
   // Audio event handlers
   const handleTimeUpdate = useCallback(() => {

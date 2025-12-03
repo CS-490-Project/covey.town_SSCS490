@@ -23,16 +23,16 @@ const VolumeMuteIcon = () => (
 
 /**
  * MuteButton Component
- * 
+ *
  * A global mute button for the Jukebox feature that appears in the top-right
  * corner of the Covey Town interface.
- * 
+ *
  * Features:
  * - Manually toggle mute state for jukebox audio
  * - Syncs with AudioContext for consistent state across components
  * - Automatically mutes when video call is active (via VideoCallAutoMute)
  * - Visual feedback with icon changes
- * 
+ *
  * @returns A fixed-position IconButton that toggles mute state
  */
 export default function MuteButton(): JSX.Element {
@@ -40,13 +40,13 @@ export default function MuteButton(): JSX.Element {
 
   const handleMuteToggle = () => {
     const newMutedState = !isMuted;
-    
+
     if (audioRef.current) {
       audioRef.current.muted = newMutedState;
     }
-    
+
     setIsMuted(newMutedState);
-    
+
     console.log('Mute button clicked. Muted:', newMutedState);
   };
 
