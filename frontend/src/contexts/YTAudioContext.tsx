@@ -10,6 +10,7 @@ import React, {
 
 type PlayerContextType = {
   containerRef: RefObject<HTMLDivElement>;
+  //@ts-expect-error YT will be loaded at runtime
   playerRef: RefObject<YT.Player | null>;
   ready: boolean;
   isPlaying: boolean;
@@ -32,6 +33,7 @@ export function YTAudioProvider({
   defaultSongID?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  //@ts-expect-error YT will be loaded at runtime
   const playerRef = useRef<YT.Player | null>(null);
 
   const [ready, setReady] = useState(false);
@@ -61,6 +63,7 @@ export function YTAudioProvider({
             if (d > 0) setDuration(d);
             if (playerRef.current) playerRef.current.playVideo();
           },
+          // @ts-expect-error Because YT is loaded at runtime, data has any type
           onStateChange: ({ data }) => {
             if (data === window.YT.PlayerState.PLAYING) {
               setIsPlaying(true);
