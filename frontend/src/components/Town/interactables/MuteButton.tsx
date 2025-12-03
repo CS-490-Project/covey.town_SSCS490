@@ -48,9 +48,9 @@ export default function MuteButton(): JSX.Element {
     }
 
     if (newMutedState) {
-      playerRef.current.mute();
+      playerRef.current?.mute();
     } else {
-      playerRef.current.unMute();
+      playerRef.current?.unMute();
     }
 
     setIsMuted(newMutedState);

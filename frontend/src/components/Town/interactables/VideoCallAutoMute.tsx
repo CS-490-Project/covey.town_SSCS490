@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { usePlayersInVideoCall } from '../../../classes/TownController';
 import { useAudio } from '../../../contexts/AudioContext';
+import { useYTAudio } from '../../../contexts/YTAudioContext';
 
 /**
  * VideoCallAutoMute Component (Task 16)
@@ -13,6 +14,7 @@ import { useAudio } from '../../../contexts/AudioContext';
  * - Automatically mutes audio when 2+ players are in proximity (video call active)
  * - Does NOT automatically unmute when leaving call (user can manually unmute)
  * - Works with real audio element through AudioContext
+ * - Works with real YouTube player element
  *
  * User Story #3: As a user, I want the jukebox to automatically mute when I'm in a video call
  *
@@ -21,6 +23,7 @@ import { useAudio } from '../../../contexts/AudioContext';
 export default function VideoCallAutoMute(): null {
   const playersInCall = usePlayersInVideoCall();
   const { audioRef, setIsMuted } = useAudio();
+  const { playerRef } = useYTAudio();
 
   useEffect(() => {
     // If there are 2 or more players in the video call (including ourselves),
@@ -31,6 +34,11 @@ export default function VideoCallAutoMute(): null {
       // Update audio element
       if (audioRef.current) {
         audioRef.current.muted = true;
+      }
+
+      // Update YouTube player element
+      if (playerRef.current) {
+        playerRef.current.mute();
       }
 
       // Update global mute state
