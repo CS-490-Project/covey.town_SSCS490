@@ -312,8 +312,8 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     seek,
     load,
   } = useYTAudio();
-  const [currentSong, setCurrentSong] = useState('No songs in playlist');
-  const [isDefaultMode, setIsDefaultMode] = useState(false);
+  const [currentSong, setCurrentSong] = useState('Default Background Music');
+  const [isDefaultMode, setIsDefaultMode] = useState(true);
 
   // Mode toggle
   const handleModeToggle = useCallback(() => {
