@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, RefObject } from 'react';
+import React, { createContext, useContext, useRef, RefObject, useState } from 'react';
 
 /**
  * Type definition for the Audio Context.
@@ -6,6 +6,8 @@ import React, { createContext, useContext, useRef, RefObject } from 'react';
  */
 type AudioContextType = {
   audioRef: RefObject<HTMLAudioElement>;
+  isMuted: boolean;
+  setIsMuted: (muted: boolean) => void;
 };
 
 const audioContext = createContext<AudioContextType | null>(null);
@@ -20,8 +22,13 @@ const audioContext = createContext<AudioContextType | null>(null);
  */
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
-  return <audioContext.Provider value={{ audioRef }}>{children}</audioContext.Provider>;
+  return (
+    <audioContext.Provider value={{ audioRef, isMuted, setIsMuted }}>
+      {children}
+    </audioContext.Provider>
+  );
 }
 
 export function useAudio() {

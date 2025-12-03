@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react';
 import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { InteractableID } from '../../../types/CoveyTownSocket';
 import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';

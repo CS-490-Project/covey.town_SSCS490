@@ -1,4 +1,5 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
+import { youtube } from '@googleapis/youtube';
 import {
   InteractableCommand,
   JukeboxArea as JukeboxAreaModel,
@@ -27,7 +28,11 @@ export default class JukeboxArea extends InteractableArea {
 
   private _songEndTimeout: NodeJS.Timeout | undefined;
 
+  private _broadcastEmitter: TownEmitter;
+
   private _town: HasPlayerCount;
+
+  private _youtubeAPIKey: string | undefined;
 
   /**
    * Creates a new JukeboxArea.
@@ -45,7 +50,10 @@ export default class JukeboxArea extends InteractableArea {
     super(id, coordinates, townEmitter);
     this.songQueue = songQueue;
     this.skipVotes = skipVotes;
+    this._broadcastEmitter = townEmitter;
     this._town = town;
+
+    this._youtubeAPIKey = process.env.YOUTUBE_DATA_API_KEY;
 
     this._periodicEmitAreaChanged();
   }
@@ -100,14 +108,14 @@ export default class JukeboxArea extends InteractableArea {
     command: CommandType,
   ): InteractableCommandReturnType<CommandType> {
     if (command.type === 'SearchSong') {
-      if (command.title == null && command.artist == null) {
-        throw new InvalidParametersError('Empty search parameters');
+      if (command.query.length === 0) {
+        throw new InvalidParametersError('Empty search query');
       }
 
-      throw new Error('Not implemented');
+      this._search(command.requesterId, command.query);
     }
     if (command.type === 'QueueSong') {
-      this._queueSong(this._urlToSong(command.url, command.player));
+      this._queueSongById(command.youtubeId, command.player);
       return undefined as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'InitiateSongSkipVote') {
@@ -122,22 +130,90 @@ export default class JukeboxArea extends InteractableArea {
     throw new InvalidParametersError('Unknown command type');
   }
 
+  private _search(requesterId: string, query: string) {
+    youtube('v3')
+      .search.list({
+        part: ['snippet'],
+        maxResults: 25,
+        q: query,
+        videoCategoryId: '10',
+        type: ['video'],
+        videoDuration: 'short',
+        auth: this._youtubeAPIKey,
+      })
+      .then(result => {
+        const { items } = result.data;
+        if (!items) {
+          return;
+        }
+
+        const songs: (Song | undefined)[] = items?.map(item => {
+          const youtubeId = item.id?.videoId;
+          const thumbnail = item.snippet?.thumbnails?.default?.url;
+          const title = item.snippet?.title;
+          const artist = item.snippet?.channelTitle;
+
+          if (!youtubeId || !thumbnail || !title || !artist) {
+            return undefined;
+          }
+          return {
+            youtubeId,
+            thumbnail,
+            title,
+            artist,
+          };
+        });
+
+        this._broadcastEmitter.emit('songSearchResults', {
+          requesterId,
+          // The cast is safe because we filter out any undefined values
+          songs: songs.filter(song => song) as Song[],
+        });
+      });
+  }
+
   /**
-   * Converts a song url to a Song.
-   * @param url url of the song
+   * Queues a song asynchronously given a YouTube ID.
+   * @param youtubeId the YouTube ID of the song
    * @param queuedBy the player who queued the song
    */
-  private _urlToSong(url: string, queuedBy?: Player): Song {
-    // TODO: perform validation of url, as well as access YouTube API in order
-    // to retrieve duration/title/artist/thumbnail.
-    return {
-      url,
-      thumbnail: '',
-      duration: 30000,
-      title: '',
-      artist: '',
-      queuedBy,
-    };
+  private _queueSongById(youtubeId: string, queuedBy?: Player) {
+    youtube('v3')
+      .videos.list({
+        part: ['snippet', 'contentDetails'],
+        maxResults: 25,
+        id: [youtubeId],
+        videoCategoryId: '10',
+        auth: this._youtubeAPIKey,
+      })
+      .then(result => {
+        const { items } = result.data;
+        // How I yearn for monads...
+        if (!items || items.length === 0) {
+          return;
+        }
+
+        const video = items[0];
+
+        const thumbnail = video.snippet?.thumbnails?.maxres?.url;
+        const rawDuration = video.contentDetails?.duration;
+        const title = video.snippet?.title;
+        const artist = video.snippet?.channelTitle;
+
+        // Or at least early return ? like in Rust...
+        if (!thumbnail || !rawDuration || !title || !artist) {
+          return;
+        }
+
+        this._queueSong({
+          youtubeId,
+          thumbnail,
+          duration: this._parseDuration(rawDuration),
+          title,
+          artist,
+          queuedBy,
+        });
+      });
   }
 
   /**
@@ -205,9 +281,62 @@ export default class JukeboxArea extends InteractableArea {
    * for periodic synchronization between the frontend and backend.
    */
   private _periodicEmitAreaChanged() {
-    const period = 1000; // 1000 ms is one second
+    const periodMs = 1000;
 
     this._emitAreaChanged();
-    setTimeout(() => this._periodicEmitAreaChanged(), period);
+    setTimeout(() => this._periodicEmitAreaChanged(), periodMs);
+  }
+
+  /**
+   * Parses durations returned by the YouTube API. These are in ISO 8601 format,
+   * so PT#M#S for videos shorter than an hour, PT#H#M#S for videos shorter than
+   * a day, and P#DT#H#M#S for videos that are longer.
+   *
+   * See
+   * https://developers.google.com/youtube/v3/docs/videos#contentDetails.duration
+   * for details.
+   *
+   * We could pull in a library for this, but it is relatively straightforward
+   * to do ourselves and is not worth the extra dependency.
+   *
+   * @param rawDuration The duration in ISO 8601 format
+   * @returns the duration in milliseconds
+   */
+  private _parseDuration(rawDuration: string): number | undefined {
+    if (rawDuration.startsWith('PT')) {
+      // the duration is under a day
+      if (rawDuration.indexOf('H') !== -1) {
+        // the duration is over an hour
+        const regex = /PT(\d+)H(\d+)M(\d+)S/;
+        const segments = regex.exec(rawDuration);
+        if (!segments) {
+          return undefined;
+        }
+        const hours = parseFloat(segments[1]);
+        const minutes = parseFloat(segments[2]);
+        const seconds = parseFloat(segments[3]);
+        return ((hours * 60 + minutes) * 60 + seconds) * 1000;
+      }
+      // the duration is under an hour
+      const regex = /PT(\d+)M(\d+)S/;
+      const segments = regex.exec(rawDuration);
+      if (!segments) {
+        return undefined;
+      }
+      const minutes = parseFloat(segments[1]);
+      const seconds = parseFloat(segments[2]);
+      return (minutes * 60 + seconds) * 1000;
+    }
+    // the duration is longer than a day
+    const regex = /P(\d+)DT(\d+)H(\d+)M(\d+)S/;
+    const segments = regex.exec(rawDuration);
+    if (!segments) {
+      return undefined;
+    }
+    const days = parseFloat(segments[1]);
+    const hours = parseFloat(segments[2]);
+    const minutes = parseFloat(segments[3]);
+    const seconds = parseFloat(segments[4]);
+    return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
   }
 }

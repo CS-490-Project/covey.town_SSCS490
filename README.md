@@ -25,13 +25,21 @@ To create an account and configure your local environment:
 2. Create an API key and secret (select "API Keys" on the left under "Settings")
 3. Create a `.env` file in the `townService` directory, setting the values as follows:
 
+You also need a YouTube API key, which can also be acquired for free:
+
+1. Log in to a Google acount
+2. Go to the [Google API Dashboard](https://console.cloud.google.com/apis/dashboard).
+3. Create a Covey Town project.
+4. Go to Library, search Youtube Data API, and enable it.
+5. Press Create Credentials to generate an API key.
+
 | Config Value            | Description                               |
 | ----------------------- | ----------------------------------------- |
 | `TWILIO_ACCOUNT_SID`    | Visible on your twilio account dashboard. |
 | `TWILIO_API_KEY_SID`    | The SID of the new API key you created.   |
 | `TWILIO_API_KEY_SECRET` | The secret for the API key you created.   |
 | `TWILIO_API_AUTH_TOKEN` | Visible on your twilio account dashboard. |
-
+| `YOUTUBE_DATA_API_KEY`  | The API key you created.                  |
 ### Starting the backend
 
 Once your backend is configured, you can start it by running `npm start` in the `townService` directory (the first time you run it, you will also need to run `npm install`).
