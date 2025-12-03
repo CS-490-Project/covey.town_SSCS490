@@ -85,7 +85,7 @@ export function YTAudioProvider({
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      if (firstScriptTag.parentNode) {
+      if (firstScriptTag?.parentNode) {
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
       }
       window.onYouTubeIframeAPIReady = createPlayer;
