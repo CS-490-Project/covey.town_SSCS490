@@ -20,7 +20,7 @@ import {
   SliderThumb,
 } from '@chakra-ui/react';
 import useTownController from '../../../hooks/useTownController';
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { InteractableID } from '../../../types/CoveyTownSocket';
 import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
@@ -339,7 +339,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     }
 
     setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
-  }, [isDefaultMode, ready, load, /*jukeboxAreaController*/]);
+  }, [isDefaultMode, ready, load, pause, playerRef, seek /*jukeboxAreaController*/]);
 
   // Playback controls
   const handlePlayPause = useCallback(() => {
@@ -352,16 +352,14 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
     if (isPlaying) pause();
     else play();
-  }, [ready, isPlaying, isDefaultMode, play, pause]);
+  }, [ready, isPlaying, isDefaultMode, play, pause, playerRef]);
 
   const handleSeek = useCallback(
     (value: number) => {
-      if(isDefaultMode)
-        seek(value);
-      else 
-        return;
+      if (!isDefaultMode) return;
+      seek(value);
     },
-    [seek],
+    [seek, isDefaultMode],
   );
 
   // THIS IS A PLACEHOLDER
@@ -373,7 +371,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     if (!isDefaultMode) return;
 
     seek(0);
-  }, [isDefaultMode, playerRef]);
+  }, [isDefaultMode, playerRef, seek]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
