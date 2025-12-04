@@ -18,6 +18,10 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  FormControl,
+  FormLabel,
+  Input,
+  useToast,
 } from '@chakra-ui/react';
 import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect } from 'react';
@@ -53,6 +57,10 @@ type JukeboxAreaProps = {
   onSkip: () => void;
   onSeek: (value: number) => void;
   onModeToggle: () => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  onSearch: (q: string) => void;
+  coveyTownController: ReturnType<typeof useTownController>;
 };
 
 function JukeboxArea({
@@ -65,6 +73,10 @@ function JukeboxArea({
   onSkip,
   onSeek,
   onModeToggle,
+  searchQuery,
+  setSearchQuery,
+  onSearch,
+  coveyTownController,
 }: JukeboxAreaProps): JSX.Element {
   // Helper to format time in mm:ss
   // Used in progress bar display to display current time and duration of song
@@ -113,6 +125,22 @@ function JukeboxArea({
           {isDefaultMode ? 'Playing default music' : 'Listening to shared town playlist'}
         </Text>
       </Box>
+{/* Search Bar */}
+      <FormControl>
+        <FormLabel htmlFor="song">Search a song</FormLabel>
+        <Input
+          id="song"
+          placeholder="Type song name and press Enter"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSearch(searchQuery);
+            }
+          }}
+        />
+      </FormControl>
 
       {/* Now Playing Section */}
       <Box bg='#70A1D9' p={6} borderRadius='xl' width='100%'>
@@ -177,19 +205,36 @@ function JukeboxArea({
 
                   {/* Progress Bar */}
                   <HStack width='100%' spacing={4}>
-                    <Text fontSize='md' color='white'>
-                      {formatTime(currentTime)}
-                    </Text>
-                    <Slider value={currentTime} min={0} max={duration} onChange={onSeek}>
-                      <SliderTrack bg='whiteAlpha.500'>
-                        <SliderFilledTrack bg='white' />
-                      </SliderTrack>
-                      <SliderThumb boxSize={4} bg='white' />
-                    </Slider>
-                    <Text fontSize='md' color='white'>
-                      {formatTime(duration)}
-                    </Text>
-                  </HStack>
+  <Text fontSize='md' color='white' minW='40px'>
+    {formatTime(currentTime)}
+  </Text>
+  <Box 
+    flex='1'
+    onKeyDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+  >
+    <Slider 
+      value={currentTime} 
+      min={0} 
+      max={duration} 
+      onChange={onSeek}
+      isDisabled={!isDefaultMode}
+      opacity={!isDefaultMode ? 0.5 : 1}
+      cursor={!isDefaultMode ? 'not-allowed' : 'pointer'}
+      focusThumbOnChange={false}
+    >
+      <SliderTrack bg='whiteAlpha.500'>
+        <SliderFilledTrack bg='white' />
+      </SliderTrack>
+      <SliderThumb boxSize={4} bg='white' />
+    </Slider>
+  </Box>
+  <Text fontSize='md' color='white' minW='40px'>
+    {formatTime(duration)}
+  </Text>
+</HStack>
                 </VStack>
               </Box>
             </VStack>
@@ -289,10 +334,12 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   }
   */
   const townController = useTownController();
+  const toast = useToast(); 
 
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
       townController.interactEnd(jukeboxArea);
+      townController.unPause();
       // Audio continues playing after modal closes
     }
   }, [townController, jukeboxArea]);
@@ -314,6 +361,33 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   } = useYTAudio();
   const [currentSong, setCurrentSong] = useState('Default Background Music');
   const [isDefaultMode, setIsDefaultMode] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+  if (jukeboxArea) {
+    townController.pause();
+  } else {
+    townController.unPause();
+  }
+}, [townController, jukeboxArea]);
+
+  const handleSearch = useCallback((query: string) => {
+  console.log('Searching for:', query);
+  // TODO: Implement actual search logic
+  // This is where we will YouTube search API
+
+  if (query.trim()) {
+    toast({
+      title: 'Song request sent!',
+      description: `"${query}" has been added to the playlist queue`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+    setSearchQuery(''); // Clear the search bar after submission
+  }
+
+}, [toast, setSearchQuery]);
 
   // Mode toggle
   const handleModeToggle = useCallback(() => {
@@ -407,6 +481,10 @@ export default function JukeboxAreaWrapper(): JSX.Element {
                 onSkip={handleSkip}
                 onSeek={handleSeek}
                 onModeToggle={handleModeToggle}
+                searchQuery={searchQuery}  
+                setSearchQuery={setSearchQuery}  
+                onSearch={handleSearch}  
+                coveyTownController={townController} 
               />
             </ModalBody>
           </ModalContent>
