@@ -18,7 +18,12 @@ import {
   SliderTrack,
   SliderFilledTrack,
   SliderThumb,
+  FormControl,
+  FormLabel,
+  Input,
+  useToast,
 } from '@chakra-ui/react';
+import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect, RefObject, useRef } from 'react';
 import { InteractableID, Song } from '../../../types/CoveyTownSocket';
 import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
@@ -60,6 +65,10 @@ type JukeboxAreaProps = {
   seek: (sec: number) => void;
   load: (songId: string) => void;
   isHidden: boolean;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  onSearch: (q: string) => void;
+  // coveyTownController: ReturnType<typeof useTownController>;
 };
 
 function JukeboxArea({
@@ -80,7 +89,11 @@ function JukeboxArea({
   seek,
   load,
   isHidden,
-}: JukeboxAreaProps): JSX.Element {
+  searchQuery,
+  setSearchQuery,
+  onSearch,
+}: // coveyTownController,
+JukeboxAreaProps): JSX.Element {
   const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(
     jukeboxArea.name,
   );
@@ -196,6 +209,22 @@ function JukeboxArea({
           {isDefaultMode ? 'Playing default music' : 'Listening to shared town playlist'}
         </Text>
       </Box>
+      {/* Search Bar */}
+      <FormControl>
+        <FormLabel htmlFor='song'>Search a song</FormLabel>
+        <Input
+          id='song'
+          placeholder='Type song name and press Enter'
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSearch(searchQuery);
+            }
+          }}
+        />
+      </FormControl>
 
       {/* Now Playing Section */}
       <Box bg='#70A1D9' p={6} borderRadius='xl' width='100%'>
@@ -260,16 +289,31 @@ function JukeboxArea({
 
                   {/* Progress Bar */}
                   <HStack width='100%' spacing={4}>
-                    <Text fontSize='md' color='white'>
+                    <Text fontSize='md' color='white' minW='40px'>
                       {formatTime(currentTime)}
                     </Text>
-                    <Slider value={currentTime} min={0} max={duration} onChange={onSeek}>
-                      <SliderTrack bg='whiteAlpha.500'>
-                        <SliderFilledTrack bg='white' />
-                      </SliderTrack>
-                      <SliderThumb boxSize={4} bg='white' />
-                    </Slider>
-                    <Text fontSize='md' color='white'>
+                    <Box
+                      flex='1'
+                      onKeyDown={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}>
+                      <Slider
+                        value={currentTime}
+                        min={0}
+                        max={duration}
+                        onChange={onSeek}
+                        isDisabled={!isDefaultMode}
+                        opacity={!isDefaultMode ? 0.5 : 1}
+                        cursor={!isDefaultMode ? 'not-allowed' : 'pointer'}
+                        focusThumbOnChange={false}>
+                        <SliderTrack bg='whiteAlpha.500'>
+                          <SliderFilledTrack bg='white' />
+                        </SliderTrack>
+                        <SliderThumb boxSize={4} bg='white' />
+                      </Slider>
+                    </Box>
+                    <Text fontSize='md' color='white' minW='40px'>
                       {formatTime(duration)}
                     </Text>
                   </HStack>
@@ -364,13 +408,16 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
 
 export default function JukeboxAreaWrapper(): JSX.Element {
   const jukeboxArea = useInteractable<JukeboxAreaInteractable>('jukeboxArea');
+  const townController = useTownController();
   const [isHidden, setIsHidden] = useState(true);
+  const toast = useToast();
 
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
       setIsHidden(true);
+      townController.unPause();
     }
-  }, [jukeboxArea]);
+  }, [jukeboxArea, townController]);
 
   // BELOW V ARE CONTROLS FOR YT IFRAME PLAYER
 
@@ -389,6 +436,35 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   } = useYTAudio();
   const [currentSong, setCurrentSong] = useState('Default Background Music');
   const [isDefaultMode, setIsDefaultMode] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (jukeboxArea) {
+      townController.pause();
+    } else {
+      townController.unPause();
+    }
+  }, [townController, jukeboxArea]);
+
+  const handleSearch = useCallback(
+    (query: string) => {
+      console.log('Searching for:', query);
+      // TODO: Implement actual search logic
+      // This is where we will YouTube search API
+
+      if (query.trim()) {
+        toast({
+          title: 'Song request sent!',
+          description: `"${query}" has been added to the playlist queue`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        setSearchQuery(''); // Clear the search bar after submission
+      }
+    },
+    [toast, setSearchQuery],
+  );
 
   function setHide() {
     setIsHidden(true);
@@ -476,6 +552,10 @@ export default function JukeboxAreaWrapper(): JSX.Element {
                 seek={seek}
                 load={load}
                 isHidden={isHidden}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onSearch={handleSearch}
+                // coveyTownController={townController}
               />
             </ModalBody>
           </ModalContent>

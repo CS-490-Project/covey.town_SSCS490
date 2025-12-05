@@ -10,6 +10,8 @@ import React, {
 
 type PlayerContextType = {
   containerRef: RefObject<HTMLDivElement>;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore YT namespace not defined during tests
   playerRef: RefObject<YT.Player | null>;
   ready: boolean;
   isPlaying: boolean;
@@ -32,6 +34,8 @@ export function YTAudioProvider({
   defaultSongID?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore YT namespace not defined during tests
   const playerRef = useRef<YT.Player | null>(null);
 
   const [ready, setReady] = useState(false);
@@ -61,6 +65,8 @@ export function YTAudioProvider({
             if (d > 0) setDuration(d);
             if (playerRef.current) playerRef.current.playVideo();
           },
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore YT namespace not defined during tests
           onStateChange: ({ data }) => {
             if (data === window.YT.PlayerState.PLAYING) {
               setIsPlaying(true);
@@ -82,7 +88,7 @@ export function YTAudioProvider({
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
-      if (firstScriptTag.parentNode) {
+      if (firstScriptTag?.parentNode) {
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
       }
       window.onYouTubeIframeAPIReady = createPlayer;

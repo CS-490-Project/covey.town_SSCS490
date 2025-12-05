@@ -3,12 +3,15 @@ import { ChakraProvider } from '@chakra-ui/react';
 import MuteButton from './MuteButton';
 import React from 'react';
 import { AudioProvider } from '../../../contexts/AudioContext';
+import { YTAudioProvider } from '../../../contexts/YTAudioContext';
 
 // Wrapper for Chakra UI and AudioProvider
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <ChakraProvider>
-      <AudioProvider>{component}</AudioProvider>
+      <YTAudioProvider>
+        <AudioProvider>{component}</AudioProvider>
+      </YTAudioProvider>
     </ChakraProvider>,
   );
 };
