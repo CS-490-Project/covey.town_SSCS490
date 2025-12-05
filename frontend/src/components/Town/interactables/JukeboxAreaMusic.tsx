@@ -19,13 +19,12 @@ import {
   SliderFilledTrack,
   SliderThumb,
 } from '@chakra-ui/react';
-import useTownController from '../../../hooks/useTownController';
-import React, { useState, useCallback, useEffect } from 'react';
-import { InteractableID } from '../../../types/CoveyTownSocket';
-//import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
-import { useInteractable } from '../../../classes/TownController';
+import React, { useState, useCallback, useEffect, RefObject, useRef } from 'react';
+import { InteractableID, Song } from '../../../types/CoveyTownSocket';
+import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
+//import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
-//import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
+import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
 import { useYTAudio } from '../../../contexts/YTAudioContext';
 
 export type SkipVoteButtonProps = {
@@ -52,7 +51,15 @@ type JukeboxAreaProps = {
   onPlayPause: () => void;
   onSkip: () => void;
   onSeek: (value: number) => void;
-  onModeToggle: () => void;
+  setIsDefaultMode: (value: boolean) => void;
+  setCurrentSong: (value: string) => void;
+  jukeboxArea: JukeboxAreaInteractable;
+  playerRef: RefObject<YT.Player | null>;
+  //play: () => void;
+  pause: () => void;
+  seek: (sec: number) => void;
+  load: (songId: string) => void;
+  isHidden: boolean;
 };
 
 function JukeboxArea({
@@ -64,8 +71,19 @@ function JukeboxArea({
   onPlayPause,
   onSkip,
   onSeek,
-  onModeToggle,
+  setIsDefaultMode,
+  setCurrentSong,
+  jukeboxArea,
+  playerRef,
+  //play,
+  pause,
+  seek,
+  load,
+  isHidden,
 }: JukeboxAreaProps): JSX.Element {
+  const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(
+    jukeboxArea.name,
+  );
   // Helper to format time in mm:ss
   // Used in progress bar display to display current time and duration of song
   const formatTime = (seconds: number): string => {
@@ -74,8 +92,73 @@ function JukeboxArea({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const lastLoadedSong = useRef<Song | null>(null);
+
+  useEffect(() => {
+    const onQueueChange = (queue: Song[]) => {
+      const next = queue[0];
+      if (!next) return;
+
+      if (lastLoadedSong.current !== next) {
+        lastLoadedSong.current = next;
+        load(next.youtubeId);
+        setCurrentSong(next.title);
+      }
+    };
+
+    jukeboxAreaController.addListener('songQueueChange', onQueueChange);
+    return () => {
+      jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
+    };
+  }, [jukeboxAreaController, load, setCurrentSong]);
+
+  const onModeToggle = useCallback(() => {
+    const newMode = !isDefaultMode;
+    setIsDefaultMode(newMode);
+
+    // Always pause and reset when switching modes
+    if (playerRef.current) {
+      pause();
+      seek(0);
+      // Remove source when switching to shared mode (empty playlist)
+      if (!newMode) {
+        if (jukeboxAreaController) {
+          const testList: Song[] = [
+            {
+              youtubeId: 'MtN1YnoL46Q',
+              thumbnail: 'blah',
+              title: 'Bad song',
+              artist: 'A horrible person',
+            },
+          ];
+          jukeboxAreaController.songQueue = testList;
+          if (jukeboxAreaController.songQueue.length > 0)
+            load(jukeboxAreaController.songQueue[0].youtubeId);
+          else load('dQw4w9WgXcQ');
+        }
+      } else {
+        load('sF80I-TQiW0');
+      }
+    }
+
+    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
+  }, [
+    isDefaultMode,
+    load,
+    pause,
+    playerRef,
+    seek,
+    setCurrentSong,
+    setIsDefaultMode,
+    jukeboxAreaController,
+  ]);
+
   return (
-    <VStack spacing={4} width='100%' align='stretch'>
+    <VStack
+      spacing={4}
+      width='100%'
+      align='stretch'
+      style={{ visibility: isHidden ? 'hidden' : 'visible' }}>
       {/* Toggle Section 
       Music Mode Toggle Section
       - Horizontal layout for label and toggle switch
@@ -281,21 +364,13 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
 
 export default function JukeboxAreaWrapper(): JSX.Element {
   const jukeboxArea = useInteractable<JukeboxAreaInteractable>('jukeboxArea');
-  // THIS REQUIRES SOLVING
-  /*
-  let jukeboxAreaController = null;
-  if (jukeboxArea) {
-    jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(jukeboxArea.id);
-  }
-  */
-  const townController = useTownController();
+  const [isHidden, setIsHidden] = useState(true);
 
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
-      townController.interactEnd(jukeboxArea);
-      // Audio continues playing after modal closes
+      setIsHidden(true);
     }
-  }, [townController, jukeboxArea]);
+  }, [jukeboxArea]);
 
   // BELOW V ARE CONTROLS FOR YT IFRAME PLAYER
 
@@ -315,32 +390,24 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [currentSong, setCurrentSong] = useState('Default Background Music');
   const [isDefaultMode, setIsDefaultMode] = useState(true);
 
-  // Mode toggle
-  const handleModeToggle = useCallback(() => {
-    const newMode = !isDefaultMode;
-    setIsDefaultMode(newMode);
+  function setHide() {
+    setIsHidden(true);
+  }
 
-    // Always pause and reset when switching modes
-    if (playerRef.current) {
-      pause();
-      seek(0);
-      // Remove source when switching to shared mode (empty playlist)
-      if (!newMode) {
-        load('dQw4w9WgXcQ');
-        /*
-        if (jukeboxAreaController) {
-          if (jukeboxAreaController.songQueue.length > 0)
-            load(jukeboxAreaController.songQueue[0].url);
-          else load('dQw4w9WgXcQ');
-        }
-        */
-      } else {
-        load('sF80I-TQiW0');
-      }
-    }
+  function setShow() {
+    setIsHidden(false);
+  }
 
-    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
-  }, [isDefaultMode, load, pause, playerRef, seek /*jukeboxAreaController*/]);
+  useEffect(() => {
+    console.log('Change');
+    jukeboxArea?.addListener('hide', setHide);
+    jukeboxArea?.addListener('show', setShow);
+
+    return () => {
+      jukeboxArea?.removeListener('hide', setHide);
+      jukeboxArea?.removeListener('show', setShow);
+    };
+  }, [jukeboxArea]);
 
   // Playback controls
   const handlePlayPause = useCallback(() => {
@@ -374,25 +441,19 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     seek(0);
   }, [isDefaultMode, playerRef, seek]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      // HANDLE SYNCHRONIZATION HERE
-      // I THINK ??
-    }, 300); // Updates every second
-
-    return () => clearInterval(intervalId);
-  }, [playerRef]);
-
   if (jukeboxArea) {
-    console.log('interactable id', jukeboxArea.id);
-
     return (
       <>
         {/* Audio element lives outside the modal - persists when modal closes */}
 
         <Modal isOpen onClose={closeModal} closeOnOverlayClick={false} size='xl'>
-          <ModalOverlay />
-          <ModalContent>
+          <ModalOverlay
+            visibility={isHidden ? 'hidden' : 'visible'}
+            pointerEvents={isHidden ? 'none' : 'auto'}
+          />
+          <ModalContent
+            visibility={isHidden ? 'hidden' : 'visible'}
+            pointerEvents={isHidden ? 'none' : 'auto'}>
             <ModalHeader>{jukeboxArea.name}</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
@@ -406,7 +467,15 @@ export default function JukeboxAreaWrapper(): JSX.Element {
                 onPlayPause={handlePlayPause}
                 onSkip={handleSkip}
                 onSeek={handleSeek}
-                onModeToggle={handleModeToggle}
+                setIsDefaultMode={setIsDefaultMode}
+                setCurrentSong={setCurrentSong}
+                jukeboxArea={jukeboxArea}
+                playerRef={playerRef}
+                //play={play}
+                pause={pause}
+                seek={seek}
+                load={load}
+                isHidden={isHidden}
               />
             </ModalBody>
           </ModalContent>
