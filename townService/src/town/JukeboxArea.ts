@@ -112,7 +112,7 @@ export default class JukeboxArea extends InteractableArea {
         throw new InvalidParametersError('Empty search query');
       }
 
-      this._search(command.requesterId, command.query);
+      this._searchAndQueue(command.requesterId, command.query);
     }
     if (command.type === 'QueueSong') {
       this._queueSongById(command.youtubeId, command.player);
@@ -130,11 +130,11 @@ export default class JukeboxArea extends InteractableArea {
     throw new InvalidParametersError('Unknown command type');
   }
 
-  private _search(requesterId: string, query: string) {
+  private _searchAndQueue(requesterId: string, query: string) {
     youtube('v3')
       .search.list({
         part: ['snippet'],
-        maxResults: 25,
+        maxResults: 1,
         q: query,
         videoCategoryId: '10',
         type: ['video'],
@@ -164,11 +164,13 @@ export default class JukeboxArea extends InteractableArea {
           };
         });
 
-        this._broadcastEmitter.emit('songSearchResults', {
-          requesterId,
-          // The cast is safe because we filter out any undefined values
-          songs: songs.filter(song => song) as Song[],
-        });
+        const filteredSongs = songs.filter(song => song) as Song[]; // we filter out any undefined songs, so this cast is safe
+
+        if (filteredSongs.length < 1) {
+          return;
+        }
+
+        this._queueSong(filteredSongs[0]);
       });
   }
 

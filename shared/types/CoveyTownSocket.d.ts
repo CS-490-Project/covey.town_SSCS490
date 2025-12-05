@@ -318,11 +318,6 @@ export type InteractableCommandResponse<MessageType> = {
   payload?: InteractableCommandResponseMap[MessageType];
 };
 
-export type SongSearchResult = {
-  requesterId: string;
-  songs: Song[];
-};
-
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -333,7 +328,6 @@ export interface ServerToClientEvents {
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
-  songSearchResults: (result: SongSearchResult) => void;
 }
 
 export interface ClientToServerEvents {
