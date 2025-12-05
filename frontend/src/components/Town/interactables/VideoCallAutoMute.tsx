@@ -37,8 +37,15 @@ export default function VideoCallAutoMute(): null {
       }
 
       // Update YouTube player element
-      if (playerRef.current) {
+      if (playerRef.current && playerRef.current.mute) {
         playerRef.current.mute();
+      } else {
+        // Wait for the youtube player to load then mute it
+        setTimeout(() => {
+          if (playerRef.current && playerRef.current.mute) {
+            playerRef.current.mute();
+          }
+        }, 500);
       }
 
       // Update global mute state
