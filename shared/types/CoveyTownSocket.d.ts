@@ -281,7 +281,7 @@ export interface GameMoveCommand<MoveType> {
 }
 export interface SearchSongCommand {
   type: "SearchSong";
-  requesterId: string;
+  requesterId: Player;
   query: string;
 }
 export interface QueueSongCommand {
