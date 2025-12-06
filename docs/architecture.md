@@ -98,7 +98,6 @@ export interface ServerToClientEvents {
   conversationAreaUpdated: (conversationArea: ConversationArea) => void;
   conversationAreaDestroyed: (conversationArea: ConversationArea) => void;
   chatMessage: (message: ChatMessage) => void;
-  songSearchResults: (result: SongSearchResult) => void;
 }
 
 export interface ClientToServerEvents {
