@@ -209,22 +209,24 @@ JukeboxAreaProps): JSX.Element {
           {isDefaultMode ? 'Playing default music' : 'Listening to shared town playlist'}
         </Text>
       </Box>
-      {/* Search Bar */}
-      <FormControl>
-        <FormLabel htmlFor='song'>Search a song</FormLabel>
-        <Input
-          id='song'
-          placeholder='Type song name and press Enter'
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              onSearch(searchQuery);
-            }
-          }}
-        />
-      </FormControl>
+      {/* Search Bar - Only show in Shared mode */}
+      {!isDefaultMode && (
+        <FormControl>
+          <FormLabel htmlFor='song'>Search a song</FormLabel>
+          <Input
+            id='song'
+            placeholder='Type song name and press Enter'
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onSearch(searchQuery);
+              }
+            }}
+          />
+        </FormControl>
+      )}
 
       {/* Now Playing Section */}
       <Box bg='#70A1D9' p={6} borderRadius='xl' width='100%'>
@@ -447,23 +449,34 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   }, [townController, jukeboxArea]);
 
   const handleSearch = useCallback(
-    (query: string) => {
-      console.log('Searching for:', query);
-      // TODO: Implement actual search logic
-      // This is where we will YouTube search API
+    async (query: string) => {
+      if (!query.trim() || !jukeboxArea) {
+        return;
+      }
 
-      if (query.trim()) {
+      try {
+        await townController.sendSearchSongCommand(jukeboxArea.id, query.trim());
+
         toast({
           title: 'Song request sent!',
-          description: `"${query}" has been added to the playlist queue`,
+          description: `Searching for "${query}"...`,
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
+
         setSearchQuery(''); // Clear the search bar after submission
+      } catch (error) {
+        toast({
+          title: 'Error sending song request',
+          description: `Could not send song request. Please try again`,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       }
     },
-    [toast, setSearchQuery],
+    [toast, townController, jukeboxArea, setSearchQuery],
   );
 
   function setHide() {

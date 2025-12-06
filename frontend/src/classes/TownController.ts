@@ -500,6 +500,23 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
+   * Send a search song command to the jukebox interactable area
+   *
+   * @param interactableID ID of the jukebox interactable area
+   * @param query The search query string
+   * @returns A promise for the search results
+   */
+  public async sendSearchSongCommand(interactableId: InteractableID, query: string): Promise<void> {
+    const command = {
+      type: 'SearchSong' as const,
+      requester: this.ourPlayer.toPlayerModel(),
+      query: query,
+    };
+
+    await this.sendInteractableCommand(interactableId, command);
+  }
+
+  /**
    * Sends an InteractableArea command to the townService. Returns a promise that resolves
    * when the command is acknowledged by the server.
    *
