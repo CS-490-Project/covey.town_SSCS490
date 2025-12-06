@@ -105,15 +105,15 @@ JukeboxAreaProps): JSX.Element {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const lastLoadedSong = useRef<Song | null>(null);
+  const lastLoadedSongYoutubeId = useRef<string | null>(null);
 
   useEffect(() => {
     const onQueueChange = (queue: Song[]) => {
       const next = queue[0];
       if (!next) return;
 
-      if (lastLoadedSong.current !== next) {
-        lastLoadedSong.current = next;
+      if (lastLoadedSongYoutubeId.current !== next.youtubeId) {
+        lastLoadedSongYoutubeId.current = next.youtubeId;
         load(next.youtubeId);
         setCurrentSong(next.title);
       }
