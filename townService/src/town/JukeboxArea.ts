@@ -112,7 +112,7 @@ export default class JukeboxArea extends InteractableArea {
         throw new InvalidParametersError('Empty search query');
       }
 
-      this._searchAndQueue(command.requesterId, command.query);
+      this._searchAndQueue(command.requester, command.query);
     }
     if (command.type === 'QueueSong') {
       this._queueSongById(command.youtubeId, command.player);
