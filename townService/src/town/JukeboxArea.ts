@@ -130,7 +130,7 @@ export default class JukeboxArea extends InteractableArea {
     throw new InvalidParametersError('Unknown command type');
   }
 
-  private _searchAndQueue(requesterId: Player, query: string) {
+  private _searchAndQueue(requester: Player, query: string) {
     youtube('v3')
       .search.list({
         part: ['snippet'],
@@ -161,7 +161,7 @@ export default class JukeboxArea extends InteractableArea {
             thumbnail,
             title,
             artist,
-            queuedBy: requesterId,
+            queuedBy: requester,
           };
         });
 
