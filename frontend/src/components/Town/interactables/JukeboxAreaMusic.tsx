@@ -105,15 +105,16 @@ JukeboxAreaProps): JSX.Element {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const lastLoadedSongYoutubeId = useRef<string | null>(null);
+  const lastLoadedSongStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
     const onQueueChange = (queue: Song[]) => {
       const next = queue[0];
       if (!next) return;
 
-      if (lastLoadedSongYoutubeId.current !== next.youtubeId) {
-        lastLoadedSongYoutubeId.current = next.youtubeId;
+      // we know next.startedAt is defined because it is first in the queue
+      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt) {
+        lastLoadedSongStartedAt.current = next.startedAt;
         load(next.youtubeId);
         setCurrentSong(next.title);
       }
