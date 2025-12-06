@@ -113,6 +113,7 @@ export default class JukeboxArea extends InteractableArea {
       }
 
       this._searchAndQueue(command.requester, command.query);
+      return undefined as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'QueueSong') {
       this._queueSongById(command.youtubeId, command.player);
@@ -143,35 +144,18 @@ export default class JukeboxArea extends InteractableArea {
       })
       .then(result => {
         const { items } = result.data;
-        if (!items) {
+        if (!items || items.length < 1) {
           return;
         }
 
-        const songs: (Song | undefined)[] = items?.map(item => {
-          const youtubeId = item.id?.videoId;
-          const thumbnail = item.snippet?.thumbnails?.default?.url;
-          const title = item.snippet?.title;
-          const artist = item.snippet?.channelTitle;
+        const youtubeId = items[0].id?.videoId;
 
-          if (!youtubeId || !thumbnail || !title || !artist) {
-            return undefined;
-          }
-          return {
-            youtubeId,
-            thumbnail,
-            title,
-            artist,
-            queuedBy: requester,
-          };
-        });
-
-        const filteredSongs = songs.filter(song => song) as Song[]; // we filter out any undefined songs, so this cast is safe
-
-        if (filteredSongs.length < 1) {
+        if (!youtubeId) {
           return;
         }
 
-        this._queueSong(filteredSongs[0]);
+        // we cannot directly queue the song because we do not have its duration
+        this._queueSongById(youtubeId);
       });
   }
 
