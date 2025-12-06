@@ -30,6 +30,19 @@ export default class JukeboxAreaController extends InteractableAreaController<
   constructor(jukeboxAreaModel: JukeboxAreaModel) {
     super(jukeboxAreaModel.id);
     this._model = jukeboxAreaModel;
+
+    setTimeout(() => {
+      const testSong: Song = {
+        youtubeId: 'TZCfydWF48c',
+        thumbnail: 'blah',
+        title: 'Winter',
+        artist: 'Composer guy',
+      };
+
+      this._model.songQueue[0] = testSong;
+      this.emit('songQueueChange', this._model.songQueue);
+      console.log('winter');
+    }, 30000);
   }
 
   /**
