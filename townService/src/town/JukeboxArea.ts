@@ -303,7 +303,8 @@ export default class JukeboxArea extends InteractableArea {
         const minutes = parseFloat(segments[2]);
         const seconds = parseFloat(segments[3]);
         return ((hours * 60 + minutes) * 60 + seconds) * 1000;
-      } else if (rawDuration.indexOf('M') !== -1) {
+      }
+      if (rawDuration.indexOf('M') !== -1) {
         // the duration is under an hour
         const regex = /PT(\d+)M(\d+)S/;
         const segments = regex.exec(rawDuration);
@@ -313,16 +314,15 @@ export default class JukeboxArea extends InteractableArea {
         const minutes = parseFloat(segments[1]);
         const seconds = parseFloat(segments[2]);
         return (minutes * 60 + seconds) * 1000;
-      } else {
-        // the duration is under a minute
-        const regex = /PT(\d+)S/;
-        const segments = regex.exec(rawDuration);
-        if (!segments) {
-          return undefined;
-        }
-        const seconds = parseFloat(segments[1]);
-        return seconds * 1000;
       }
+      // the duration is under a minute
+      const regex = /PT(\d+)S/;
+      const segments = regex.exec(rawDuration);
+      if (!segments) {
+        return undefined;
+      }
+      const seconds = parseFloat(segments[1]);
+      return seconds * 1000;
     }
     // the duration is longer than a day
     const regex = /P(\d+)DT(\d+)H(\d+)M(\d+)S/;
