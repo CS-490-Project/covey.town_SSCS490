@@ -113,6 +113,7 @@ export default class JukeboxArea extends InteractableArea {
       }
 
       this._searchAndQueue(command.requester, command.query);
+      return undefined as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'QueueSong') {
       this._queueSongById(command.youtubeId, command.player);
@@ -143,35 +144,18 @@ export default class JukeboxArea extends InteractableArea {
       })
       .then(result => {
         const { items } = result.data;
-        if (!items) {
+        if (!items || items.length < 1) {
           return;
         }
 
-        const songs: (Song | undefined)[] = items?.map(item => {
-          const youtubeId = item.id?.videoId;
-          const thumbnail = item.snippet?.thumbnails?.default?.url;
-          const title = item.snippet?.title;
-          const artist = item.snippet?.channelTitle;
+        const youtubeId = items[0].id?.videoId;
 
-          if (!youtubeId || !thumbnail || !title || !artist) {
-            return undefined;
-          }
-          return {
-            youtubeId,
-            thumbnail,
-            title,
-            artist,
-            queuedBy: requester,
-          };
-        });
-
-        const filteredSongs = songs.filter(song => song) as Song[]; // we filter out any undefined songs, so this cast is safe
-
-        if (filteredSongs.length < 1) {
+        if (!youtubeId) {
           return;
         }
 
-        this._queueSong(filteredSongs[0]);
+        // we cannot directly queue the song because we do not have its duration
+        this._queueSongById(youtubeId);
       });
   }
 
@@ -320,15 +304,25 @@ export default class JukeboxArea extends InteractableArea {
         const seconds = parseFloat(segments[3]);
         return ((hours * 60 + minutes) * 60 + seconds) * 1000;
       }
-      // the duration is under an hour
-      const regex = /PT(\d+)M(\d+)S/;
+      if (rawDuration.indexOf('M') !== -1) {
+        // the duration is under an hour
+        const regex = /PT(\d+)M(\d+)S/;
+        const segments = regex.exec(rawDuration);
+        if (!segments) {
+          return undefined;
+        }
+        const minutes = parseFloat(segments[1]);
+        const seconds = parseFloat(segments[2]);
+        return (minutes * 60 + seconds) * 1000;
+      }
+      // the duration is under a minute
+      const regex = /PT(\d+)S/;
       const segments = regex.exec(rawDuration);
       if (!segments) {
         return undefined;
       }
-      const minutes = parseFloat(segments[1]);
-      const seconds = parseFloat(segments[2]);
-      return (minutes * 60 + seconds) * 1000;
+      const seconds = parseFloat(segments[1]);
+      return seconds * 1000;
     }
     // the duration is longer than a day
     const regex = /P(\d+)DT(\d+)H(\d+)M(\d+)S/;

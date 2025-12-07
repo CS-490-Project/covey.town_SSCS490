@@ -336,5 +336,15 @@ describe('JukeboxArea', () => {
         expect(testArea._parseDuration(`PT${minutes}M${seconds}S`)).toBe(result);
       }
     });
+
+    it('parses subminute durations correctly', () => {
+      for (let i = 0; i < 10; i++) {
+        const seconds = Math.floor(Math.random() * 60);
+        const result = seconds * 1000;
+
+        // @ts-expect-error (access to private method)
+        expect(testArea._parseDuration(`PT${seconds}S`)).toBe(result);
+      }
+    });
   });
 });
