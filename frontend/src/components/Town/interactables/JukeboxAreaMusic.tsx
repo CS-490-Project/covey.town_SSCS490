@@ -118,24 +118,24 @@ JukeboxAreaProps): JSX.Element {
     if (jukeboxAreaController) {
       if (jukeboxAreaController.songQueue.length > 0) {
         const theoreticalTime = Date.now() - startedAtCurrentSong;
-        if (Math.abs(theoreticalTime - (currentTime * 1000)) > ALLOWED_DRIFT) {
+        if (Math.abs(theoreticalTime - currentTime * 1000) > ALLOWED_DRIFT) {
           seek(Math.floor(theoreticalTime / 1000));
         }
       }
     }
-  }, [isDefaultMode, currentTime, seek, jukeboxAreaController]);
+  }, [isDefaultMode, currentTime, seek, jukeboxAreaController, startedAtCurrentSong]);
 
   // Looping defalut music
   useEffect(() => {
     if (!isDefaultMode) return;
     const intervalId = window.setInterval(() => {
-    if (playerRef.current?.getPlayerState() === window.YT.PlayerState.ENDED) {
-      load(DEFAULT_SONG);
-    }
-    console.log(playerRef.current?.getPlayerState());
+      if (playerRef.current?.getPlayerState() === window.YT.PlayerState.ENDED) {
+        load(DEFAULT_SONG);
+      }
+      console.log(playerRef.current?.getPlayerState());
     }, 300);
     return () => window.clearInterval(intervalId);
-  }, [playerRef, isDefaultMode, load]);  
+  }, [playerRef, isDefaultMode, load]);
 
   const lastLoadedSongStartedAt = useRef<number | null>(null);
 
@@ -183,12 +183,14 @@ JukeboxAreaProps): JSX.Element {
       // Remove source when switching to shared mode (empty playlist)
       if (!newMode) {
         if (jukeboxAreaController) {
-          if (jukeboxAreaController.songQueue.length > 0 && jukeboxAreaController.songQueue[0].startedAt) {
+          if (
+            jukeboxAreaController.songQueue.length > 0 &&
+            jukeboxAreaController.songQueue[0].startedAt
+          ) {
             setStartedAtCurrentSong(jukeboxAreaController.songQueue[0].startedAt);
             load(jukeboxAreaController.songQueue[0].youtubeId);
             setCurrentSong(jukeboxAreaController.songQueue[0].title);
-          }
-          else {
+          } else {
             setCurrentSong('No songs in playlist');
           }
         }
