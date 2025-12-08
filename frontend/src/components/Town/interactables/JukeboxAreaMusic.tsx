@@ -117,7 +117,7 @@ JukeboxAreaProps): JSX.Element {
       if (!next) {
         setCurrentSong('No songs in playlist');
         return;
-    }
+      }
 
       // we know next.startedAt is defined because it is first in the queue
       if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt) {
@@ -128,14 +128,14 @@ JukeboxAreaProps): JSX.Element {
     };
 
     jukeboxAreaController.addListener('songQueueChange', onQueueChange);
-    
+
     // ADD THIS: Initialize with current queue on mount
-  const currentQueue = jukeboxAreaController.songQueue;
-  if (currentQueue.length > 0) {
-    setSongQueue(currentQueue);
-    setCurrentSong(currentQueue[0].title);
-  }
-  
+    const currentQueue = jukeboxAreaController.songQueue;
+    if (currentQueue.length > 0) {
+      setSongQueue(currentQueue);
+      setCurrentSong(currentQueue[0].title);
+    }
+
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
@@ -341,80 +341,69 @@ JukeboxAreaProps): JSX.Element {
         </VStack>
       </Box>
 
-       {/* Queue Display - Only show in Shared mode */}
-{!isDefaultMode && (
-  <Box
-    bg="white"
-    p={4}
-    borderRadius="md"
-    border="1px solid"
-    borderColor="gray.200"
-    maxH="300px"
-    overflowY="auto"
-  >
-    <Text fontSize="lg" fontWeight="semibold" mb={3} color="gray.700">
-      Playlist ({songQueue.length} {songQueue.length === 1 ? 'song' : 'songs'})
-    </Text>
-    
-    {songQueue.length === 0 ? (
-      <Box bg="gray.50" p={4} borderRadius="md" textAlign="center">
-        <Text color="gray.500" fontSize="sm">
-          No songs in queue. Search and add songs above!
-        </Text>
-      </Box>
-    ) : (
-      <VStack spacing={2} align="stretch">
-        {songQueue.map((song, index) => (
-          <Box
-            key={`${song.youtubeId}-${index}-${song.startedAt || 'queued'}`}
-            bg={index === 0 ? "blue.50" : "gray.50"}
-            p={3}
-            borderRadius="md"
-            borderLeft="4px solid"
-            borderColor={index === 0 ? "blue.500" : "gray.300"}
-            transition="all 0.2s"
-          >
-            <HStack justify="space-between" align="start">
-              <VStack align="start" spacing={1} flex={1}>
-                <HStack>
-                  {index === 0 && (
-                    <Text fontSize="sm" color="blue.500"></Text>
-                  )}
-                  <Text 
-                    fontWeight={index === 0 ? "bold" : "medium"} 
-                    fontSize="sm"
-                    color={index === 0 ? "blue.700" : "gray.700"}
-                    noOfLines={1}
-                  >
-                    {song.title}
-                  </Text>
-                </HStack>
-                {song.queuedBy && (
-                  <Text fontSize="xs" color="gray.500" fontStyle="italic">
-                    Queued by {song.queuedBy.userName}
-                  </Text>
-                )}
-              </VStack>
-              {index === 0 && (
+      {/* Queue Display - Only show in Shared mode */}
+      {!isDefaultMode && (
+        <Box
+          bg='white'
+          p={4}
+          borderRadius='md'
+          border='1px solid'
+          borderColor='gray.200'
+          maxH='300px'
+          overflowY='auto'>
+          <Text fontSize='lg' fontWeight='semibold' mb={3} color='gray.700'>
+            Playlist ({songQueue.length} {songQueue.length === 1 ? 'song' : 'songs'})
+          </Text>
+
+          {songQueue.length === 0 ? (
+            <Box bg='gray.50' p={4} borderRadius='md' textAlign='center'>
+              <Text color='gray.500' fontSize='sm'>
+                No songs in queue. Search and add songs above!
+              </Text>
+            </Box>
+          ) : (
+            <VStack spacing={2} align='stretch'>
+              {songQueue.map((song, index) => (
                 <Box
-                  bg="blue.500"
-                  px={2}
-                  py={1}
-                  borderRadius="md"
-                  flexShrink={0}
-                >
-                  <Text fontSize="xs" color="white" fontWeight="bold">
-                    PLAYING
-                  </Text>
+                  key={`${song.youtubeId}-${index}-${song.startedAt || 'queued'}`}
+                  bg={index === 0 ? 'blue.50' : 'gray.50'}
+                  p={3}
+                  borderRadius='md'
+                  borderLeft='4px solid'
+                  borderColor={index === 0 ? 'blue.500' : 'gray.300'}
+                  transition='all 0.2s'>
+                  <HStack justify='space-between' align='start'>
+                    <VStack align='start' spacing={1} flex={1}>
+                      <HStack>
+                        {index === 0 && <Text fontSize='sm' color='blue.500'></Text>}
+                        <Text
+                          fontWeight={index === 0 ? 'bold' : 'medium'}
+                          fontSize='sm'
+                          color={index === 0 ? 'blue.700' : 'gray.700'}
+                          noOfLines={1}>
+                          {song.title}
+                        </Text>
+                      </HStack>
+                      {song.queuedBy && (
+                        <Text fontSize='xs' color='gray.500' fontStyle='italic'>
+                          Queued by {song.queuedBy.userName}
+                        </Text>
+                      )}
+                    </VStack>
+                    {index === 0 && (
+                      <Box bg='blue.500' px={2} py={1} borderRadius='md' flexShrink={0}>
+                        <Text fontSize='xs' color='white' fontWeight='bold'>
+                          PLAYING
+                        </Text>
+                      </Box>
+                    )}
+                  </HStack>
                 </Box>
-              )}
-            </HStack>
-          </Box>
-        ))}
-      </VStack>
-    )}
-  </Box>
-)}
+              ))}
+            </VStack>
+          )}
+        </Box>
+      )}
 
       {/* Additional Info */}
       <Text fontSize='xs' color='gray.500' textAlign='center'>
