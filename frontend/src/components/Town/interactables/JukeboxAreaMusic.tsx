@@ -99,6 +99,8 @@ JukeboxAreaProps): JSX.Element {
   const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(
     jukeboxArea.name,
   );
+
+  const [songQueue, setSongQueue] = useState<Song[]>([]);
   // Helper to format time in mm:ss
   // Used in progress bar display to display current time and duration of song
   const formatTime = (seconds: number): string => {
@@ -139,8 +141,13 @@ JukeboxAreaProps): JSX.Element {
 
   useEffect(() => {
     const onQueueChange = (queue: Song[]) => {
+      setSongQueue(queue);
+
       const next = queue[0];
-      if (!next) return;
+      if (!next) {
+        setCurrentSong('No songs in playlist');
+        return;
+      }
 
       // we know next.startedAt is defined because it is first in the queue
       if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt && !isDefaultMode) {
@@ -152,6 +159,14 @@ JukeboxAreaProps): JSX.Element {
     };
 
     jukeboxAreaController.addListener('songQueueChange', onQueueChange);
+
+    // Initialize with current queue on mount
+    const currentQueue = jukeboxAreaController.songQueue;
+    if (currentQueue.length > 0) {
+      setSongQueue(currentQueue);
+      setCurrentSong(currentQueue[0].title);
+    }
+
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
@@ -254,7 +269,6 @@ JukeboxAreaProps): JSX.Element {
           />
         </FormControl>
       )}
-
       {/* Now Playing Section */}
       <Box bg='#70A1D9' p={6} borderRadius='xl' width='100%'>
         <VStack spacing={4}>
@@ -352,6 +366,70 @@ JukeboxAreaProps): JSX.Element {
           </Box>
         </VStack>
       </Box>
+
+      {/* Queue Display - Only show in Shared mode */}
+      {!isDefaultMode && (
+        <Box
+          bg='white'
+          p={4}
+          borderRadius='md'
+          border='1px solid'
+          borderColor='gray.200'
+          maxH='300px'
+          overflowY='auto'>
+          <Text fontSize='lg' fontWeight='semibold' mb={3} color='gray.700'>
+            Playlist ({songQueue.length} {songQueue.length === 1 ? 'song' : 'songs'})
+          </Text>
+
+          {songQueue.length === 0 ? (
+            <Box bg='gray.50' p={4} borderRadius='md' textAlign='center'>
+              <Text color='gray.500' fontSize='sm'>
+                No songs in queue. Search and add songs above!
+              </Text>
+            </Box>
+          ) : (
+            <VStack spacing={2} align='stretch'>
+              {songQueue.map((song, index) => (
+                <Box
+                  key={`${song.youtubeId}-${index}-${song.startedAt || 'queued'}`}
+                  bg={index === 0 ? 'blue.50' : 'gray.50'}
+                  p={3}
+                  borderRadius='md'
+                  borderLeft='4px solid'
+                  borderColor={index === 0 ? 'blue.500' : 'gray.300'}
+                  transition='all 0.2s'>
+                  <HStack justify='space-between' align='start'>
+                    <VStack align='start' spacing={1} flex={1}>
+                      <HStack>
+                        {index === 0 && <Text fontSize='sm' color='blue.500'></Text>}
+                        <Text
+                          fontWeight={index === 0 ? 'bold' : 'medium'}
+                          fontSize='sm'
+                          color={index === 0 ? 'blue.700' : 'gray.700'}
+                          noOfLines={1}>
+                          {song.title}
+                        </Text>
+                      </HStack>
+                      {song.queuedBy && (
+                        <Text fontSize='xs' color='gray.500' fontStyle='italic'>
+                          Queued by {song.queuedBy.userName}
+                        </Text>
+                      )}
+                    </VStack>
+                    {index === 0 && (
+                      <Box bg='blue.500' px={2} py={1} borderRadius='md' flexShrink={0}>
+                        <Text fontSize='xs' color='white' fontWeight='bold'>
+                          PLAYING
+                        </Text>
+                      </Box>
+                    )}
+                  </HStack>
+                </Box>
+              ))}
+            </VStack>
+          )}
+        </Box>
+      )}
 
       {/* Additional Info */}
       <Text fontSize='xs' color='gray.500' textAlign='center'>
