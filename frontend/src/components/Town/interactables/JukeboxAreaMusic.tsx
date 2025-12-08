@@ -129,7 +129,7 @@ JukeboxAreaProps): JSX.Element {
 
     jukeboxAreaController.addListener('songQueueChange', onQueueChange);
 
-    // ADD THIS: Initialize with current queue on mount
+    // Initialize with current queue on mount
     const currentQueue = jukeboxAreaController.songQueue;
     if (currentQueue.length > 0) {
       setSongQueue(currentQueue);
