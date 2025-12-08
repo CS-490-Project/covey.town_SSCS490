@@ -27,10 +27,11 @@ import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect, RefObject, useRef } from 'react';
 import { InteractableID, Song } from '../../../types/CoveyTownSocket';
 import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
-//import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
 import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
 import { useYTAudio } from '../../../contexts/YTAudioContext';
+
+const ALLOWED_DRIFT = 3000;
 
 export type SkipVoteButtonProps = {
   visible: boolean;
@@ -105,6 +106,25 @@ JukeboxAreaProps): JSX.Element {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const [startedAtCurrentSong, setStartedAtCurrentSong] = useState(0);
+
+  // Synchronization
+  useEffect(() => {
+    // No sync in default mode
+    if (isDefaultMode) return;
+    if (jukeboxAreaController) {
+      if (jukeboxAreaController.songQueue.length > 0) {
+        const theoreticalTime = Date.now() - startedAtCurrentSong;
+        console.log(theoreticalTime);
+        console.log(startedAtCurrentSong);
+        if (Math.abs(theoreticalTime - (currentTime * 1000)) > ALLOWED_DRIFT) {
+          seek(Math.floor(theoreticalTime / 1000));
+        }
+      }
+    }
+    console.log(currentTime);
+  }, [isDefaultMode, currentTime, seek, jukeboxAreaController]);
+
   const lastLoadedSongStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
@@ -117,6 +137,7 @@ JukeboxAreaProps): JSX.Element {
         lastLoadedSongStartedAt.current = next.startedAt;
         load(next.youtubeId);
         setCurrentSong(next.title);
+        setStartedAtCurrentSong(next.startedAt);
       }
     };
 
@@ -143,12 +164,14 @@ JukeboxAreaProps): JSX.Element {
               thumbnail: 'blah',
               title: 'Bad song',
               artist: 'A horrible person',
+              startedAt: Date.now(),
             },
           ];
           jukeboxAreaController.songQueue = testList;
-          if (jukeboxAreaController.songQueue.length > 0)
+          if (jukeboxAreaController.songQueue.length > 0 && jukeboxAreaController.songQueue[0].startedAt) {
+            setStartedAtCurrentSong(jukeboxAreaController.songQueue[0].startedAt);
             load(jukeboxAreaController.songQueue[0].youtubeId);
-          else load('dQw4w9WgXcQ');
+          }
         }
       } else {
         load('sF80I-TQiW0');

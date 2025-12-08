@@ -57,6 +57,7 @@ export function YTAudioProvider({
           enablejsapi: 1,
           fs: 0,
           loop: 1,
+          playlist: defaultSongID,
         },
         events: {
           onReady: () => {
