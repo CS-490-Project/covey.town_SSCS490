@@ -115,14 +115,11 @@ JukeboxAreaProps): JSX.Element {
     if (jukeboxAreaController) {
       if (jukeboxAreaController.songQueue.length > 0) {
         const theoreticalTime = Date.now() - startedAtCurrentSong;
-        console.log(theoreticalTime);
-        console.log(startedAtCurrentSong);
         if (Math.abs(theoreticalTime - (currentTime * 1000)) > ALLOWED_DRIFT) {
           seek(Math.floor(theoreticalTime / 1000));
         }
       }
     }
-    console.log(currentTime);
   }, [isDefaultMode, currentTime, seek, jukeboxAreaController]);
 
   const lastLoadedSongStartedAt = useRef<number | null>(null);
@@ -158,7 +155,7 @@ JukeboxAreaProps): JSX.Element {
       // Remove source when switching to shared mode (empty playlist)
       if (!newMode) {
         if (jukeboxAreaController) {
-          const testList: Song[] = [
+          /* const testList: Song[] = [
             {
               youtubeId: 'MtN1YnoL46Q',
               thumbnail: 'blah',
@@ -167,18 +164,23 @@ JukeboxAreaProps): JSX.Element {
               startedAt: Date.now(),
             },
           ];
-          jukeboxAreaController.songQueue = testList;
+          jukeboxAreaController.songQueue = testList; */
           if (jukeboxAreaController.songQueue.length > 0 && jukeboxAreaController.songQueue[0].startedAt) {
             setStartedAtCurrentSong(jukeboxAreaController.songQueue[0].startedAt);
             load(jukeboxAreaController.songQueue[0].youtubeId);
+            setCurrentSong(jukeboxAreaController.songQueue[0].title);
+          }
+          else {
+            setCurrentSong('No songs in playlist');
           }
         }
       } else {
         load('sF80I-TQiW0');
+        setCurrentSong('Default Background Music');
       }
     }
 
-    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
+    //setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
   }, [
     isDefaultMode,
     load,
