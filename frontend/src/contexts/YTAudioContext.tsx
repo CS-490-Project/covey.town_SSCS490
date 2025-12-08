@@ -72,10 +72,12 @@ export function YTAudioProvider({
             if (data === window.YT.PlayerState.PLAYING) {
               setIsPlaying(true);
               setDuration(d => d || Math.floor(playerRef.current?.getDuration() ?? 0));
-            } else if (
-              data === window.YT.PlayerState.PAUSED ||
-              data === window.YT.PlayerState.ENDED
-            ) {
+            } 
+            else if (data === window.YT.PlayerState.ENDED) {
+              setIsPlaying(false);
+              
+            }
+            else if (data === window.YT.PlayerState.PAUSED) {
               setIsPlaying(false);
             }
           },
