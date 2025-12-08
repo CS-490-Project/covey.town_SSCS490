@@ -127,6 +127,7 @@ JukeboxAreaProps): JSX.Element {
   useEffect(() => {
     const onQueueChange = (queue: Song[]) => {
       const next = queue[0];
+      if (isDefaultMode) return;
       if (!next) return;
 
       // we know next.startedAt is defined because it is first in the queue
@@ -155,16 +156,6 @@ JukeboxAreaProps): JSX.Element {
       // Remove source when switching to shared mode (empty playlist)
       if (!newMode) {
         if (jukeboxAreaController) {
-          /* const testList: Song[] = [
-            {
-              youtubeId: 'MtN1YnoL46Q',
-              thumbnail: 'blah',
-              title: 'Bad song',
-              artist: 'A horrible person',
-              startedAt: Date.now(),
-            },
-          ];
-          jukeboxAreaController.songQueue = testList; */
           if (jukeboxAreaController.songQueue.length > 0 && jukeboxAreaController.songQueue[0].startedAt) {
             setStartedAtCurrentSong(jukeboxAreaController.songQueue[0].startedAt);
             load(jukeboxAreaController.songQueue[0].youtubeId);
@@ -175,12 +166,10 @@ JukeboxAreaProps): JSX.Element {
           }
         }
       } else {
-        load('sF80I-TQiW0');
+        load('pFS4zYWxzNA');
         setCurrentSong('Default Background Music');
       }
     }
-
-    //setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
   }, [
     isDefaultMode,
     load,
