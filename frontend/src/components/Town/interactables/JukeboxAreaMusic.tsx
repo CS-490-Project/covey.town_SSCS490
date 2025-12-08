@@ -31,7 +31,8 @@ import JukeboxAreaInteractable from './JukeboxArea';
 import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
 import { useYTAudio } from '../../../contexts/YTAudioContext';
 
-const ALLOWED_DRIFT = 3000;
+const ALLOWED_DRIFT = 2000;
+const DEFAULT_SONG = 'pFS4zYWxzNA';
 
 export type SkipVoteButtonProps = {
   visible: boolean;
@@ -122,6 +123,18 @@ JukeboxAreaProps): JSX.Element {
     }
   }, [isDefaultMode, currentTime, seek, jukeboxAreaController]);
 
+  // Looping defalut music
+  useEffect(() => {
+    if (!isDefaultMode) return;
+    const intervalId = window.setInterval(() => {
+    if (playerRef.current?.getPlayerState() === window.YT.PlayerState.ENDED) {
+      load(DEFAULT_SONG);
+    }
+    console.log(playerRef.current?.getPlayerState());
+    }, 300);
+    return () => window.clearInterval(intervalId);
+  }, [playerRef, isDefaultMode, load]);  
+
   const lastLoadedSongStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
@@ -130,7 +143,7 @@ JukeboxAreaProps): JSX.Element {
       if (!next) return;
 
       // we know next.startedAt is defined because it is first in the queue
-      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt) {
+      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt && !isDefaultMode) {
         lastLoadedSongStartedAt.current = next.startedAt;
         load(next.youtubeId);
         setCurrentSong(next.title);
@@ -142,7 +155,7 @@ JukeboxAreaProps): JSX.Element {
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
-  }, [jukeboxAreaController, load, setCurrentSong]);
+  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode]);
 
   const onModeToggle = useCallback(() => {
     const newMode = !isDefaultMode;
@@ -165,7 +178,7 @@ JukeboxAreaProps): JSX.Element {
           }
         }
       } else {
-        load('pFS4zYWxzNA');
+        load(DEFAULT_SONG);
         setCurrentSong('Default Background Music');
       }
     }

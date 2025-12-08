@@ -28,7 +28,6 @@ const playerContext = createContext<PlayerContextType | null>(null);
 
 export function YTAudioProvider({
   children,
-  //defaultSongID = 'sF80I-TQiW0',
   defaultSongID = 'pFS4zYWxzNA',
 }: {
   children: React.ReactNode;
@@ -120,7 +119,6 @@ export function YTAudioProvider({
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
-    //playerRef.current.loadPlaylist(videoId);
     playerRef.current.loadVideoById(videoId);
   }, []);
 
