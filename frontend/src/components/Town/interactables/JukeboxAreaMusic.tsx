@@ -127,7 +127,6 @@ JukeboxAreaProps): JSX.Element {
   useEffect(() => {
     const onQueueChange = (queue: Song[]) => {
       const next = queue[0];
-      if (isDefaultMode) return;
       if (!next) return;
 
       // we know next.startedAt is defined because it is first in the queue
