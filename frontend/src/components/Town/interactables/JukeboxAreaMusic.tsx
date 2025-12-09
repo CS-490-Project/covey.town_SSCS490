@@ -27,10 +27,12 @@ import useTownController from '../../../hooks/useTownController';
 import React, { useState, useCallback, useEffect, RefObject, useRef } from 'react';
 import { InteractableID, Song } from '../../../types/CoveyTownSocket';
 import { useInteractable, useInteractableAreaController } from '../../../classes/TownController';
-//import { useInteractable } from '../../../classes/TownController';
 import JukeboxAreaInteractable from './JukeboxArea';
 import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaController';
 import { useYTAudio } from '../../../contexts/YTAudioContext';
+
+const ALLOWED_DRIFT = 2000;
+const DEFAULT_SONG = 'pFS4zYWxzNA';
 
 export type SkipVoteButtonProps = {
   visible: boolean;
@@ -95,7 +97,7 @@ function JukeboxArea({
 }: // coveyTownController,
 JukeboxAreaProps): JSX.Element {
   const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(
-    jukeboxArea.name,
+    jukeboxArea.id,
   );
 
   const [songQueue, setSongQueue] = useState<Song[]>([]);
@@ -107,6 +109,34 @@ JukeboxAreaProps): JSX.Element {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const [startedAtCurrentSong, setStartedAtCurrentSong] = useState(0);
+
+  // Synchronization
+  useEffect(() => {
+    // No sync in default mode
+    if (isDefaultMode) return;
+    if (jukeboxAreaController) {
+      if (jukeboxAreaController.songQueue.length > 0) {
+        const theoreticalTime = Date.now() - startedAtCurrentSong;
+        if (Math.abs(theoreticalTime - currentTime * 1000) > ALLOWED_DRIFT) {
+          seek(Math.floor(theoreticalTime / 1000));
+        }
+      }
+    }
+  }, [isDefaultMode, currentTime, seek, jukeboxAreaController, startedAtCurrentSong]);
+
+  // Looping defalut music
+  useEffect(() => {
+    if (!isDefaultMode) return;
+    const intervalId = window.setInterval(() => {
+      if (playerRef.current?.getPlayerState() === window.YT.PlayerState.ENDED) {
+        load(DEFAULT_SONG);
+      }
+      console.log(playerRef.current?.getPlayerState());
+    }, 300);
+    return () => window.clearInterval(intervalId);
+  }, [playerRef, isDefaultMode, load]);
+
   const lastLoadedSongStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
@@ -114,16 +144,17 @@ JukeboxAreaProps): JSX.Element {
       setSongQueue(queue);
 
       const next = queue[0];
-      if (!next) {
+      if (!next && !isDefaultMode) {
         setCurrentSong('No songs in playlist');
         return;
       }
 
       // we know next.startedAt is defined because it is first in the queue
-      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt) {
+      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt && !isDefaultMode) {
         lastLoadedSongStartedAt.current = next.startedAt;
         load(next.youtubeId);
         setCurrentSong(next.title);
+        setStartedAtCurrentSong(next.startedAt);
       }
     };
 
@@ -133,13 +164,12 @@ JukeboxAreaProps): JSX.Element {
     const currentQueue = jukeboxAreaController.songQueue;
     if (currentQueue.length > 0) {
       setSongQueue(currentQueue);
-      setCurrentSong(currentQueue[0].title);
     }
 
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
-  }, [jukeboxAreaController, load, setCurrentSong]);
+  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode]);
 
   const onModeToggle = useCallback(() => {
     const newMode = !isDefaultMode;
@@ -152,25 +182,22 @@ JukeboxAreaProps): JSX.Element {
       // Remove source when switching to shared mode (empty playlist)
       if (!newMode) {
         if (jukeboxAreaController) {
-          const testList: Song[] = [
-            {
-              youtubeId: 'MtN1YnoL46Q',
-              thumbnail: 'blah',
-              title: 'Song',
-              artist: 'Artist',
-            },
-          ];
-          jukeboxAreaController.songQueue = testList;
-          if (jukeboxAreaController.songQueue.length > 0)
+          if (
+            jukeboxAreaController.songQueue.length > 0 &&
+            jukeboxAreaController.songQueue[0].startedAt
+          ) {
+            setStartedAtCurrentSong(jukeboxAreaController.songQueue[0].startedAt);
             load(jukeboxAreaController.songQueue[0].youtubeId);
-          else load('dQw4w9WgXcQ');
+            setCurrentSong(jukeboxAreaController.songQueue[0].title);
+          } else {
+            setCurrentSong('No songs in playlist');
+          }
         }
       } else {
-        load('sF80I-TQiW0');
+        load(DEFAULT_SONG);
+        setCurrentSong('Default Background Music');
       }
     }
-
-    setCurrentSong(newMode ? 'Default Background Music' : 'No songs in playlist');
   }, [
     isDefaultMode,
     load,

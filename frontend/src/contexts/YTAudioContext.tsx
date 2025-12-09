@@ -28,7 +28,7 @@ const playerContext = createContext<PlayerContextType | null>(null);
 
 export function YTAudioProvider({
   children,
-  defaultSongID = 'sF80I-TQiW0',
+  defaultSongID = 'pFS4zYWxzNA',
 }: {
   children: React.ReactNode;
   defaultSongID?: string;
@@ -57,6 +57,7 @@ export function YTAudioProvider({
           enablejsapi: 1,
           fs: 0,
           loop: 1,
+          playlist: defaultSongID,
         },
         events: {
           onReady: () => {
@@ -71,10 +72,9 @@ export function YTAudioProvider({
             if (data === window.YT.PlayerState.PLAYING) {
               setIsPlaying(true);
               setDuration(d => d || Math.floor(playerRef.current?.getDuration() ?? 0));
-            } else if (
-              data === window.YT.PlayerState.PAUSED ||
-              data === window.YT.PlayerState.ENDED
-            ) {
+            } else if (data === window.YT.PlayerState.ENDED) {
+              setIsPlaying(false);
+            } else if (data === window.YT.PlayerState.PAUSED) {
               setIsPlaying(false);
             }
           },
