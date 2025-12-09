@@ -300,7 +300,7 @@ describe('JukeboxArea', () => {
     });
   });
 
-  // These tests are left over from when we implemented _parseDuration 
+  // These tests are left over from when we implemented _parseDuration
   // ourselves, but they are still a good sanity check for a relatively obscure
   // library.
   describe('_parseDuration', () => {
@@ -350,7 +350,7 @@ describe('JukeboxArea', () => {
       }
     });
     it('parses three minutes correctly correctly', () => {
-        // @ts-expect-error (access to private method)
+      // @ts-expect-error (access to private method)
       expect(testArea._parseDuration(`PT3M`)).toBe(1000 * 60 * 3);
     });
   });

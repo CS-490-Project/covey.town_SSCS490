@@ -1,5 +1,6 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import { youtube } from '@googleapis/youtube';
+import { parse, toSeconds } from 'iso8601-duration';
 import {
   InteractableCommand,
   JukeboxArea as JukeboxAreaModel,
@@ -11,7 +12,6 @@ import {
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 import InvalidParametersError from '../lib/InvalidParametersError';
-import { parse, toSeconds } from 'iso8601-duration';
 
 /*
  * We do this in order to remove the circular dependency that would arise from
