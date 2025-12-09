@@ -97,7 +97,7 @@ function JukeboxArea({
 }: // coveyTownController,
 JukeboxAreaProps): JSX.Element {
   const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>(
-    jukeboxArea.name,
+    jukeboxArea.id,
   );
 
   const [songQueue, setSongQueue] = useState<Song[]>([]);
@@ -144,7 +144,7 @@ JukeboxAreaProps): JSX.Element {
       setSongQueue(queue);
 
       const next = queue[0];
-      if (!next) {
+      if (!next && !isDefaultMode) {
         setCurrentSong('No songs in playlist');
         return;
       }
@@ -164,7 +164,6 @@ JukeboxAreaProps): JSX.Element {
     const currentQueue = jukeboxAreaController.songQueue;
     if (currentQueue.length > 0) {
       setSongQueue(currentQueue);
-      setCurrentSong(currentQueue[0].title);
     }
 
     return () => {
