@@ -521,11 +521,11 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const toast = useToast();
 
   const closeModal = useCallback(() => {
-    if (jukeboxArea) {
-      setIsHidden(true);
-      townController.unPause();
-    }
-  }, [jukeboxArea, townController]);
+  if (jukeboxArea) {
+    setIsHidden(true);
+    townController.unPause();
+  }
+}, [jukeboxArea, townController]);
 
   // BELOW V ARE CONTROLS FOR YT IFRAME PLAYER
 
@@ -547,12 +547,12 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (jukeboxArea) {
+    if (jukeboxArea  && !isHidden ) {
       townController.pause();
     } else {
       townController.unPause();
     }
-  }, [townController, jukeboxArea]);
+  }, [townController, jukeboxArea, isHidden]);
 
   const handleSearch = useCallback(
     async (query: string) => {
@@ -587,10 +587,12 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
   function setHide() {
     setIsHidden(true);
+    townController.unPause();
   }
 
   function setShow() {
     setIsHidden(false);
+    townController.pause();
   }
 
   useEffect(() => {
