@@ -22,7 +22,8 @@ This enhanced version of Covey.Town introduces Jukebox Player which is an intera
 
 The jukebox player brings a new exciting feature to virtual gatherings, allowing teams to share music during work sessions, host listening parties, or simply create ambiance in their virtual spaces.
 
-
+![Covey.Town with Youtube API Architecture](docs/covey-town-yt-architecture.png.png)
+The figure above depicts the high-level architecture of Covey.Town with Youtube API implemented to play music.
 ## Running this app locally
 
 Running the application locally entails running both the backend service and a frontend.
