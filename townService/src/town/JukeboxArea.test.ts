@@ -28,6 +28,7 @@ describe('JukeboxArea', () => {
   const id = nanoid();
   const songQueue: Song[] = [];
   const skipVotes = 0;
+  const isVoting = false;
   const occupants: PlayerID[] = [];
 
   const testSong: Song = {
@@ -42,7 +43,7 @@ describe('JukeboxArea', () => {
     mockClear(townEmitter);
     playerCountObject.playerCount = 0;
     testArea = new JukeboxArea(
-      { id, songQueue, skipVotes, occupants },
+      { id, songQueue, skipVotes, isVoting, occupants },
       testAreaBox,
       townEmitter,
       town,
@@ -65,6 +66,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [extraPlayer.id],
         type: 'JukeboxArea',
       });
@@ -82,6 +84,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
@@ -93,6 +96,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue,
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
@@ -150,6 +154,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
@@ -191,6 +196,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
@@ -201,6 +207,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
@@ -213,6 +220,7 @@ describe('JukeboxArea', () => {
         id,
         songQueue: [],
         skipVotes,
+        isVoting,
         occupants: [newPlayer.id],
         type: 'JukeboxArea',
       });
