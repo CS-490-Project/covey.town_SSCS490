@@ -233,9 +233,9 @@ export default class JukeboxArea extends InteractableArea {
       this.songQueue[0].startedAt = Date.now();
 
       this._songEndTimeout = setTimeout(() => this._songEnd(), this.songQueue[0].duration);
-
-      this._emitAreaChanged();
     }
+
+    this._emitAreaChanged();
   }
 
   /**
