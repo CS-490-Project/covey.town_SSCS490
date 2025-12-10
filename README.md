@@ -1,4 +1,4 @@
-# Covey.Town
+# Covey.Town 
 
 Covey.Town provides a virtual meeting space where different groups of people can have simultaneous video calls, allowing participants to drift between different conversations, just like in real life.
 Covey.Town was built for Northeastern's [Spring 2021 software engineering course](https://neu-se.github.io/CS4530-CS5500-Spring-2021/), and is designed to be reused across semesters.
@@ -11,6 +11,17 @@ The frontend client (in the `frontend` directory of this repository) uses the [P
 The frontend implements video chat using the [Twilio Programmable Video](https://www.twilio.com/docs/video) API, and that aspect of the interface relies heavily on [Twilio's React Starter App](https://github.com/twilio/twilio-video-app-react). Twilio's React Starter App is packaged and reused under the Apache License, 2.0.
 
 A backend service (in the `townService` directory) implements the application logic: tracking which "towns" are available to be joined, and the state of each of those towns.
+
+# New Feature: Shared and Default Jukebox Player
+This enhanced version of Covey.Town introduces Jukebox Player which is an interactive space where users can collaboratively create and enjoy shared music playlists using YouTube videos. When you enter a jukebox area, you can:
+1. Listen to covey.town's default music
+2. Listen to covey.town's shared playlist music
+3. Search and add music to covey.town's shared playlist music
+4. Experience synchronized playback with everyone in the area
+5. Vote on skip music
+
+The jukebox player brings a new exciting feature to virtual gatherings, allowing teams to share music during work sessions, host listening parties, or simply create ambiance in their virtual spaces.
+
 
 ## Running this app locally
 
@@ -57,3 +68,23 @@ automatically connect to the town with the friendly name "DEBUG_TOWN" (creating 
 
 In the `frontend` directory, run `npm start` (again, you'll need to run `npm install` the very first time). After several moments (or minutes, depending on the speed of your machine), a browser will open with the frontend running locally.
 The frontend will automatically re-compile and reload in your browser if you change any files in the `frontend/src` directory.
+
+## Screenshots
+### Covey.Town with Jukebox interactable
+<img src="docs/jukeboxArea.png" width="300"/>
+
+Press space when prompted 
+
+### Jukebox Player -- Default Music 
+<img src="docs/jukebox_default.png" width="300"/>
+
+Interact with play/pause button to play/pause music
+
+Interact with fast forward button to return to beginning of the song
+
+Interact with slider to listen to a different part of default song
+
+### Jukebox Player -- Shared Playlist 
+<img src="docs/jukebox_shared.png" width="300"/>
+
+Interact with search bar to search songs 
