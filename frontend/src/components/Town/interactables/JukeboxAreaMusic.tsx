@@ -150,7 +150,12 @@ JukeboxAreaProps): JSX.Element {
       }
 
       // we know next.startedAt is defined because it is first in the queue
-      if (lastLoadedSongStartedAt.current !== next.startedAt && next.startedAt && !isDefaultMode) {
+      if (
+        songQueue.length !== 0 &&
+        lastLoadedSongStartedAt.current !== next.startedAt &&
+        next.startedAt &&
+        !isDefaultMode
+      ) {
         lastLoadedSongStartedAt.current = next.startedAt;
         load(next.youtubeId);
         setCurrentSong(next.title);
