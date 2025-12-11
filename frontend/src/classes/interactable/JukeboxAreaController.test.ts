@@ -17,13 +17,6 @@ describe('JukeboxAreaController', () => {
     title: 'Song 1',
     artist: 'Artist 1',
   };
-  const testSong2: Song = {
-    youtubeId: 'def',
-    duration: 5000,
-    thumbnail: '',
-    title: 'Song 2',
-    artist: 'Artist 2',
-  };
   const testQueue: Song[] = [testSong];
 
   beforeEach(() => {
