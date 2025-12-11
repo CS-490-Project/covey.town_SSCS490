@@ -144,6 +144,7 @@ JukeboxAreaProps): JSX.Element {
 
       const next = queue[0];
       if (!next && !isDefaultMode) {
+        playerRef.current?.stopVideo();
         setCurrentSong('No songs in playlist');
         return;
       }
@@ -168,7 +169,7 @@ JukeboxAreaProps): JSX.Element {
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
-  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode, seek, duration]);
+  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode, seek, duration, playerRef]);
 
   const onModeToggle = useCallback(() => {
     const newMode = !isDefaultMode;
@@ -517,7 +518,6 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [displayVote, setDisplayVote] = useState(false);
   const toast = useToast();
   const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>('Jukebox');
-
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
       setIsHidden(true);
@@ -638,11 +638,9 @@ export default function JukeboxAreaWrapper(): JSX.Element {
         // Vote is on a 20 second timer
         townController.sendInitiateVoteSkipCommand(jukeboxArea.id);
       }
-      return;
     }
-
-    seek(0);
-  }, [jukeboxArea, jukeboxAreaController, seek, townController]);
+    if (isDefaultMode) seek(0);
+  }, [isDefaultMode, jukeboxArea, jukeboxAreaController, seek, townController]);
 
   const handleVoteConfirm = useCallback(() => {
     // Sends Yes vote to the JukeboxArea interactable
