@@ -30,6 +30,8 @@ export default class JukeboxArea extends InteractableArea {
   public isVoting: boolean;
 
   private _songEndTimeout: NodeJS.Timeout | undefined;
+  
+  private _voteEndTimeout: NodeJS.Timeout | undefined;
 
   private _broadcastEmitter: TownEmitter;
 
@@ -127,10 +129,11 @@ export default class JukeboxArea extends InteractableArea {
     // The command for initiating a skip vote; does not submit a vote
     if (command.type === 'InitiateSongSkipVote') {
       this.skipVotes = 0;
-      this.isVoting = true;
+      clearTimeout(this._voteEndTimeout);
 
+      this.isVoting = true;
       // Ends the vote after 20 seconds
-      setTimeout(() => {
+      this._voteEndTimeout = setTimeout(() => {
         this.isVoting = false;
       }, 20000);
       return undefined as InteractableCommandReturnType<CommandType>;

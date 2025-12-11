@@ -585,7 +585,6 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   }, [townController]);
 
   useEffect(() => {
-    console.log('Change');
     jukeboxArea?.addListener('hide', setHide);
     jukeboxArea?.addListener('show', setShow);
 
@@ -618,7 +617,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
   // Displays the skip vote for the client when a vote is occurring
   useEffect(() => {
-    if (!jukeboxAreaController) return;
+    if (!jukeboxAreaController || jukeboxAreaController.songQueue.length === 0) return;
 
     const onVotingChange = (isVoting: boolean) => {
       if (isVoting) {
