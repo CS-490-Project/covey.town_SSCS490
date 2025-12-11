@@ -97,7 +97,6 @@ export default class JukeboxAreaController extends InteractableAreaController<
    */
   public set isVoting(currentVotingStatus: boolean) {
     this._model.isVoting = currentVotingStatus;
-    console.log('isVoting status:', currentVotingStatus);
     this.emit('isVotingStarted', currentVotingStatus);
   }
 

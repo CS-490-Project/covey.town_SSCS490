@@ -617,10 +617,10 @@ export default function JukeboxAreaWrapper(): JSX.Element {
 
   // Displays the skip vote for the client when a vote is occurring
   useEffect(() => {
-    if (!jukeboxAreaController || jukeboxAreaController.songQueue.length === 0) return;
+    if (!jukeboxAreaController) return;
 
     const onVotingChange = (isVoting: boolean) => {
-      if (isVoting) {
+      if (isVoting && jukeboxAreaController.songQueue.length !== 0) {
         setDisplayVote(true);
       } else {
         setDisplayVote(false);
