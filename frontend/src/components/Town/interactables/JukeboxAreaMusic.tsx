@@ -144,9 +144,7 @@ JukeboxAreaProps): JSX.Element {
 
       const next = queue[0];
       if (!next && !isDefaultMode) {
-        seek(duration);
         setCurrentSong('No songs in playlist');
-        seek(0);
         return;
       }
 
