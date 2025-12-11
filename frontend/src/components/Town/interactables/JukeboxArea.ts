@@ -43,6 +43,7 @@ export default class JukeboxArea extends Interactable {
   overlapExit(): void {
     this._labelText?.setVisible(false);
     if (this._isInteracting) {
+      this.townController.unPause();
       this.emit('hide');
       this._isInteracting = false;
     }
@@ -51,6 +52,7 @@ export default class JukeboxArea extends Interactable {
   interact(): void {
     this._labelText?.setVisible(false);
     this._isInteracting = true;
+    this.townController.pause();
     this.emit('show');
   }
 

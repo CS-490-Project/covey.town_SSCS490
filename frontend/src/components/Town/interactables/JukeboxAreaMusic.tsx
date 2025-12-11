@@ -536,12 +536,12 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (jukeboxArea) {
+    if (jukeboxArea && !isHidden) {
       townController.pause();
     } else {
       townController.unPause();
     }
-  }, [townController, jukeboxArea]);
+  }, [townController, jukeboxArea, isHidden]);
 
   const handleSearch = useCallback(
     async (query: string) => {
@@ -574,13 +574,15 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     [toast, townController, jukeboxArea, setSearchQuery],
   );
 
-  function setHide() {
+  const setHide = useCallback(() => {
     setIsHidden(true);
-  }
+    townController.unPause();
+  }, [townController]);
 
-  function setShow() {
+  const setShow = useCallback(() => {
     setIsHidden(false);
-  }
+    townController.pause();
+  }, [townController]);
 
   useEffect(() => {
     console.log('Change');
@@ -591,7 +593,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
       jukeboxArea?.removeListener('hide', setHide);
       jukeboxArea?.removeListener('show', setShow);
     };
-  }, [jukeboxArea]);
+  }, [jukeboxArea, setHide, setShow]);
 
   // Playback controls
   const handlePlayPause = useCallback(() => {

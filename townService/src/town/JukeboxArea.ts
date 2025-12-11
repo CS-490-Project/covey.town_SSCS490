@@ -1,5 +1,6 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import { youtube } from '@googleapis/youtube';
+import { parse, toSeconds } from 'iso8601-duration';
 import {
   InteractableCommand,
   JukeboxArea as JukeboxAreaModel,
@@ -245,9 +246,9 @@ export default class JukeboxArea extends InteractableArea {
       this.songQueue[0].startedAt = Date.now();
 
       this._songEndTimeout = setTimeout(() => this._songEnd(), this.songQueue[0].duration);
-
-      this._emitAreaChanged();
     }
+
+    this._emitAreaChanged();
   }
 
   /**
@@ -289,64 +290,15 @@ export default class JukeboxArea extends InteractableArea {
 
   /**
    * Parses durations returned by the YouTube API. These are in ISO 8601 format,
-   * so PT#M#S for videos shorter than an hour, PT#H#M#S for videos shorter than
-   * a day, and P#DT#H#M#S for videos that are longer.
    *
    * See
    * https://developers.google.com/youtube/v3/docs/videos#contentDetails.duration
    * for details.
    *
-   * We could pull in a library for this, but it is relatively straightforward
-   * to do ourselves and is not worth the extra dependency.
-   *
    * @param rawDuration The duration in ISO 8601 format
    * @returns the duration in milliseconds
    */
-  private _parseDuration(rawDuration: string): number | undefined {
-    if (rawDuration.startsWith('PT')) {
-      // the duration is under a day
-      if (rawDuration.indexOf('H') !== -1) {
-        // the duration is over an hour
-        const regex = /PT(\d+)H(\d+)M(\d+)S/;
-        const segments = regex.exec(rawDuration);
-        if (!segments) {
-          return undefined;
-        }
-        const hours = parseFloat(segments[1]);
-        const minutes = parseFloat(segments[2]);
-        const seconds = parseFloat(segments[3]);
-        return ((hours * 60 + minutes) * 60 + seconds) * 1000;
-      }
-      if (rawDuration.indexOf('M') !== -1) {
-        // the duration is under an hour
-        const regex = /PT(\d+)M(\d+)S/;
-        const segments = regex.exec(rawDuration);
-        if (!segments) {
-          return undefined;
-        }
-        const minutes = parseFloat(segments[1]);
-        const seconds = parseFloat(segments[2]);
-        return (minutes * 60 + seconds) * 1000;
-      }
-      // the duration is under a minute
-      const regex = /PT(\d+)S/;
-      const segments = regex.exec(rawDuration);
-      if (!segments) {
-        return undefined;
-      }
-      const seconds = parseFloat(segments[1]);
-      return seconds * 1000;
-    }
-    // the duration is longer than a day
-    const regex = /P(\d+)DT(\d+)H(\d+)M(\d+)S/;
-    const segments = regex.exec(rawDuration);
-    if (!segments) {
-      return undefined;
-    }
-    const days = parseFloat(segments[1]);
-    const hours = parseFloat(segments[2]);
-    const minutes = parseFloat(segments[3]);
-    const seconds = parseFloat(segments[4]);
-    return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+  private _parseDuration(rawDuration: string): number {
+    return toSeconds(parse(rawDuration)) * 1000;
   }
 }
