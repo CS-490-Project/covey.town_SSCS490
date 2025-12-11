@@ -596,7 +596,6 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   }, [townController]);
 
   useEffect(() => {
-    console.log('Change');
     jukeboxArea?.addListener('hide', setHide);
     jukeboxArea?.addListener('show', setShow);
 
