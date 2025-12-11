@@ -517,6 +517,34 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
+   * Send a InitiateSongSkipVote command to the JukeboxArea backend
+   *
+   * @param interactableID ID of the JukeboxArea interactable
+   * @returns A promise for song skip
+   */
+  public async sendInitiateVoteSkipCommand(interactableId: InteractableID): Promise<void> {
+    const command = {
+      type: 'InitiateSongSkipVote' as const,
+      player: this.ourPlayer.toPlayerModel(),
+    };
+    await this.sendInteractableCommand(interactableId, command);
+  }
+
+  /**
+   * Send a VoteForSongSkip command to the JukeboxArea backend
+   *
+   * @param interactableID ID of the JukeboxArea interactable
+   * @returns A promise for the vote to skip
+   */
+  public async sendVoteConfirmCommand(interactableId: InteractableID): Promise<void> {
+    const command = {
+      type: 'VoteForSongSkip' as const,
+      player: this.ourPlayer.toPlayerModel(),
+    };
+    await this.sendInteractableCommand(interactableId, command);
+  }
+
+  /**
    * Sends an InteractableArea command to the townService. Returns a promise that resolves
    * when the command is acknowledged by the server.
    *
