@@ -125,14 +125,13 @@ JukeboxAreaProps): JSX.Element {
     }
   }, [isDefaultMode, currentTime, seek, jukeboxAreaController, startedAtCurrentSong]);
 
-  // Looping defalut music
+  // Looping default music
   useEffect(() => {
     if (!isDefaultMode) return;
     const intervalId = window.setInterval(() => {
       if (playerRef.current?.getPlayerState() === window.YT.PlayerState.ENDED) {
         load(DEFAULT_SONG);
       }
-      console.log(playerRef.current?.getPlayerState());
     }, 300);
     return () => window.clearInterval(intervalId);
   }, [playerRef, isDefaultMode, load]);
@@ -145,7 +144,9 @@ JukeboxAreaProps): JSX.Element {
 
       const next = queue[0];
       if (!next && !isDefaultMode) {
+        seek(duration);
         setCurrentSong('No songs in playlist');
+        seek(0);
         return;
       }
 
@@ -169,7 +170,7 @@ JukeboxAreaProps): JSX.Element {
     return () => {
       jukeboxAreaController.removeListener('songQueueChange', onQueueChange);
     };
-  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode]);
+  }, [jukeboxAreaController, load, setCurrentSong, isDefaultMode, seek, duration]);
 
   const onModeToggle = useCallback(() => {
     const newMode = !isDefaultMode;
@@ -325,9 +326,6 @@ JukeboxAreaProps): JSX.Element {
                       border='2px solid white'
                       borderRadius='full'
                       _hover={{ bg: 'whiteAlpha.300' }}
-                      isDisabled={!isDefaultMode}
-                      opacity={!isDefaultMode ? 0.5 : 1}
-                      cursor={!isDefaultMode ? 'not-allowed' : 'pointer'}
                     />
                   </HStack>
 
@@ -446,7 +444,7 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
       position='fixed'
       bottom='16px'
       left='20px'
-      zIndex={1100}
+      zIndex={1500}
       display={visible ? 'flex' : 'none'}
       bg='white'
       border='1px solid #E4E7E9'
@@ -459,10 +457,10 @@ export function SkipVoteButton({ visible, onConfirm, onCancel }: SkipVoteButtonP
       <Text fontWeight='semibold'>Skip song?</Text>
       <HStack spacing='8px'>
         <Button size='sm' onClick={onConfirm}>
-          Confirm
+          Yes
         </Button>
         <Button size='sm' variant='outline' onClick={onCancel}>
-          Cancel
+          No
         </Button>
       </HStack>
     </Box>
@@ -518,7 +516,9 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   const jukeboxArea = useInteractable<JukeboxAreaInteractable>('jukeboxArea');
   const townController = useTownController();
   const [isHidden, setIsHidden] = useState(true);
+  const [displayVote, setDisplayVote] = useState(false);
   const toast = useToast();
+  const jukeboxAreaController = useInteractableAreaController<JukeboxAreaController>('Jukebox');
 
   const closeModal = useCallback(() => {
     if (jukeboxArea) {
@@ -530,18 +530,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
   // BELOW V ARE CONTROLS FOR YT IFRAME PLAYER
 
   // Audio state - lives here so it persists when modal closes
-  const {
-    //containerRef,
-    playerRef,
-    //ready,
-    isPlaying,
-    currentTime,
-    duration,
-    play,
-    pause,
-    seek,
-    load,
-  } = useYTAudio();
+  const { playerRef, isPlaying, currentTime, duration, play, pause, seek, load } = useYTAudio();
   const [currentSong, setCurrentSong] = useState('Default Background Music');
   const [isDefaultMode, setIsDefaultMode] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -625,29 +614,65 @@ export default function JukeboxAreaWrapper(): JSX.Element {
     [seek, isDefaultMode],
   );
 
-  // THIS IS A PLACEHOLDER
-  // ACTUAL SKIP SHOULD HAVE A DIFFERENT LOGIC
-  const handleSkip = useCallback(() => {
-    if (!playerRef.current) return;
+  // Displays the skip vote for the client when a vote is occurring
+  useEffect(() => {
+    if (!jukeboxAreaController) return;
 
-    // Skip only works in default mode for now
-    if (!isDefaultMode) return;
+    const onVotingChange = (isVoting: boolean) => {
+      if (isVoting) {
+        setDisplayVote(true);
+      } else {
+        setDisplayVote(false);
+      }
+    };
+    jukeboxAreaController?.addListener('isVotingStarted', onVotingChange);
+
+    return () => {
+      jukeboxAreaController?.removeListener('isVotingStarted', onVotingChange);
+    };
+  }, [jukeboxAreaController]);
+
+  const handleSkip = useCallback(() => {
+    if (jukeboxArea) {
+      // Sends Initiate Vote Skip Command if there is no current vote to skip.
+      if (jukeboxAreaController.skipVotes === 0 && !jukeboxAreaController.isVoting) {
+        // Vote is on a 20 second timer
+        townController.sendInitiateVoteSkipCommand(jukeboxArea.id);
+      }
+      return;
+    }
 
     seek(0);
-  }, [isDefaultMode, playerRef, seek]);
+  }, [jukeboxArea, jukeboxAreaController, seek, townController]);
 
-  if (jukeboxArea) {
-    return (
-      <>
-        {/* Audio element lives outside the modal - persists when modal closes */}
+  const handleVoteConfirm = useCallback(() => {
+    // Sends Yes vote to the JukeboxArea interactable
+    townController.sendVoteConfirmCommand('Jukebox');
+    setDisplayVote(false);
+  }, [townController]);
 
+  const handleVoteCancel = useCallback(() => {
+    // Just hides SkipVoteButton
+    setDisplayVote(false);
+  }, []);
+
+  return (
+    <>
+      {/* Audio element also here for when modal isn't open */}
+      {displayVote && (
+        <SkipVoteButton
+          visible={displayVote}
+          onConfirm={handleVoteConfirm}
+          onCancel={handleVoteCancel}
+        />
+      )}
+
+      {/* Audio element lives outside the modal - persists when modal closes */}
+      {jukeboxArea && (
         <Modal isOpen onClose={closeModal} closeOnOverlayClick={false} size='xl'>
-          <ModalOverlay
-            visibility={isHidden ? 'hidden' : 'visible'}
-            pointerEvents={isHidden ? 'none' : 'auto'}
-          />
+          <ModalOverlay display={isHidden ? 'none' : 'block'} />
           <ModalContent
-            visibility={isHidden ? 'hidden' : 'visible'}
+            display={isHidden ? 'none' : 'block'}
             pointerEvents={isHidden ? 'none' : 'auto'}>
             <ModalHeader>{jukeboxArea.name}</ModalHeader>
             <ModalCloseButton />
@@ -679,14 +704,7 @@ export default function JukeboxAreaWrapper(): JSX.Element {
             </ModalBody>
           </ModalContent>
         </Modal>
-      </>
-    );
-  }
-
-  return (
-    <>
-      {/* Audio element also here for when modal isn't open */}
-      <SkipVoteButton visible={true} onConfirm={() => {}} onCancel={() => {}} />
+      )}
     </>
   );
 }
