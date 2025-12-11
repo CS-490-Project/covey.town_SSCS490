@@ -128,8 +128,7 @@ export function YTAudioProvider({
         pause,
         seek,
         load,
-      }}
-    >
+      }}>
       {children}
       <div ref={containerRef} style={{ width: 0, height: 0, visibility: 'hidden' }} />
     </playerContext.Provider>
