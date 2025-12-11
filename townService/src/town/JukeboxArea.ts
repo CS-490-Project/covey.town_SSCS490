@@ -132,9 +132,11 @@ export default class JukeboxArea extends InteractableArea {
       clearTimeout(this._voteEndTimeout);
 
       this.isVoting = true;
+      this._emitAreaChanged();
       // Ends the vote after 20 seconds
       this._voteEndTimeout = setTimeout(() => {
         this.isVoting = false;
+        this._emitAreaChanged();
       }, 20000);
       return undefined as InteractableCommandReturnType<CommandType>;
     }
