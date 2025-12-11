@@ -30,7 +30,7 @@ export default class JukeboxArea extends InteractableArea {
   public isVoting: boolean;
 
   private _songEndTimeout: NodeJS.Timeout | undefined;
-  
+
   private _voteEndTimeout: NodeJS.Timeout | undefined;
 
   private _broadcastEmitter: TownEmitter;
