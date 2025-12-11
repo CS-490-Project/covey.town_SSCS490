@@ -10,6 +10,14 @@ import JukeboxAreaController from '../../../classes/interactable/JukeboxAreaCont
 import { Song } from '../../../types/CoveyTownSocket';
 import JukeboxAreaWrapper from './JukeboxAreaMusic';
 
+/*
+Added one file with four small tests:
+JukeboxArea gets rendered
+Toggling default/shared mode calls seek and pause
+Queuing a song call load with that song id
+Sync calls seek with correct time if there is a time difference is greater than allowed drift. 
+*/
+
 const play = jest.fn();
 const pause = jest.fn();
 const seek = jest.fn();
