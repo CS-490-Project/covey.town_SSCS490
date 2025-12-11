@@ -11,11 +11,11 @@ describe('JukeboxAreaController', () => {
   const townController: MockProxy<TownController> = mock<TownController>();
   const mockListeners = mock<JukeboxAreaEvents>();
   const testSong: Song = {
-    youtubeId: '',
+    youtubeId: 'abc',
     duration: 1000,
     thumbnail: '',
-    title: '',
-    artist: '',
+    title: 'Song 1',
+    artist: 'Artist 1',
   };
   const testQueue: Song[] = [testSong];
 
@@ -24,6 +24,7 @@ describe('JukeboxAreaController', () => {
       id: nanoid(),
       songQueue: [],
       skipVotes: 0,
+      isVoting: false,
       occupants: [],
       type: 'JukeboxArea',
     };
@@ -31,12 +32,29 @@ describe('JukeboxAreaController', () => {
     mockClear(townController);
     mockClear(mockListeners.songQueueChange);
     testAreaController.addListener('songQueueChange', mockListeners.songQueueChange);
+    jest.spyOn(testAreaController, 'emit');
   });
   describe('songQueueChange', () => {
     it('emits a songQueueChange event if the queue changes', () => {
       testAreaController.songQueue = testQueue;
       expect(mockListeners.songQueueChange).toBeCalledWith(testAreaController.songQueue);
+      expect(testAreaController.emit).toHaveBeenCalledWith('songQueueChange', testQueue);
       expect(testAreaController.songQueue).toEqual(testQueue);
+    });
+  });
+  describe('isVotingStarted', () => {
+    it('isVoting should initially be false', () => {
+      expect(testAreaController.isVoting).toBe(false);
+    });
+    it('emits a isVotingStarted event if a skip vote is started', () => {
+      testAreaController.isVoting = true;
+      expect(testAreaModel.isVoting).toBe(true);
+      expect(testAreaController.emit).toHaveBeenCalledWith('isVotingStarted', true);
+    });
+    it('isVoting is set back to false', () => {
+      testAreaController.isVoting = false;
+      expect(testAreaModel.isVoting).toBe(false);
+      expect(testAreaController.emit).toHaveBeenCalledWith('isVotingStarted', false);
     });
   });
   describe('JukeboxAreaModel', () => {
@@ -51,6 +69,7 @@ describe('JukeboxAreaController', () => {
         id: testAreaModel.id,
         songQueue: [testSong],
         skipVotes: 0,
+        isVoting: false,
         occupants: [],
         type: 'JukeboxArea',
       };
@@ -64,6 +83,7 @@ describe('JukeboxAreaController', () => {
         id: nanoid(),
         songQueue: [],
         skipVotes: 0,
+        isVoting: false,
         occupants: [],
         type: 'JukeboxArea',
       };

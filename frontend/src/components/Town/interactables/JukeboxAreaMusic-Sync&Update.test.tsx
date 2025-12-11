@@ -98,6 +98,7 @@ describe('Jukebox Area Music', () => {
       id: 'test',
       songQueue: [],
       skipVotes: 0,
+      isVoting: false,
       occupants: [],
       type: 'JukeboxArea',
     });

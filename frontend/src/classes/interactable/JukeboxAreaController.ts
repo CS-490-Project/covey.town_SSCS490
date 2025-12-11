@@ -13,6 +13,11 @@ export type JukeboxAreaEvents = BaseInteractableEventMap & {
    * Listeners are passed the new queue in the parameter `songQueue`
    */
   songQueueChange: (queue: Song[]) => void;
+  /**
+   * A isVotingStarted event indicates that a skip vote has started.
+   * Listeners have their vote prompt made visible`
+   */
+  isVotingStarted: (isVoting: boolean) => void;
 };
 
 export default class JukeboxAreaController extends InteractableAreaController<
@@ -57,7 +62,7 @@ export default class JukeboxAreaController extends InteractableAreaController<
   }
 
   /**
-   * Returns the an array of Song objects.
+   * @returns an array of Songs that are currently in the shared playlist
    */
   public get songQueue(): Song[] {
     return this._model.songQueue;
@@ -65,14 +70,45 @@ export default class JukeboxAreaController extends InteractableAreaController<
 
   /**
    * Updates the songQueue array if a song is queued or a song ends.
+   * @param queue
    */
   public set songQueue(queue: Song[]) {
-    if (this._model.songQueue != queue) this._model.songQueue = queue;
+    if (this._model.songQueue !== queue) this._model.songQueue = queue;
     this.emit('songQueueChange', queue);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  /**
+   * @returns the number of votes to skip the current song in the shared playlist
+   */
+  public get skipVotes(): number {
+    return this._model.skipVotes;
+  }
+
+  /**
+   * @returns true if a vote is currently ongoing and false if a vote is not ongoing
+   */
+  public get isVoting(): boolean {
+    return this._model.isVoting;
+  }
+
+  /**
+   * Updates the isVoting boolean value and emits the change to the clients.
+   * @param currentVotingStatus
+   */
+  public set isVoting(currentVotingStatus: boolean) {
+    this._model.isVoting = currentVotingStatus;
+    this.emit('isVotingStarted', currentVotingStatus);
+  }
+
+  /**
+   * Update the state of the JukeboxArea from a new area model.
+   * @param updatedModel
+   */
   protected _updateFrom(updatedModel: JukeboxAreaModel): void {
     this.songQueue = updatedModel.songQueue;
+    if (this._model.isVoting !== updatedModel.isVoting) {
+      this._model.isVoting = updatedModel.isVoting;
+      this.emit('isVotingStarted', updatedModel.isVoting);
+    }
   }
 }

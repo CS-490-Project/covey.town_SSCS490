@@ -27,7 +27,11 @@ export default class JukeboxArea extends InteractableArea {
 
   public skipVotes: number;
 
+  public isVoting: boolean;
+
   private _songEndTimeout: NodeJS.Timeout | undefined;
+
+  private _voteEndTimeout: NodeJS.Timeout | undefined;
 
   private _broadcastEmitter: TownEmitter;
 
@@ -43,7 +47,7 @@ export default class JukeboxArea extends InteractableArea {
    * @param townEmitter a broadcast emitter that can be used to emit updates to players
    */
   public constructor(
-    { songQueue, skipVotes, id }: Omit<JukeboxAreaModel, 'type'>,
+    { songQueue, skipVotes, isVoting, id }: Omit<JukeboxAreaModel, 'type'>,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
     town: HasPlayerCount,
@@ -51,6 +55,7 @@ export default class JukeboxArea extends InteractableArea {
     super(id, coordinates, townEmitter);
     this.songQueue = songQueue;
     this.skipVotes = skipVotes;
+    this.isVoting = isVoting;
     this._broadcastEmitter = townEmitter;
     this._town = town;
 
@@ -71,6 +76,7 @@ export default class JukeboxArea extends InteractableArea {
       occupants: this.occupantsByID,
       songQueue: this.songQueue,
       skipVotes: this.skipVotes,
+      isVoting: this.isVoting,
     };
   }
 
@@ -91,7 +97,7 @@ export default class JukeboxArea extends InteractableArea {
     }
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
     return new JukeboxArea(
-      { id: name, occupants: [], songQueue: [], skipVotes: 0 },
+      { id: name, occupants: [], songQueue: [], skipVotes: 0, isVoting: false },
       rect,
       broadcastEmitter,
       town,
@@ -120,10 +126,19 @@ export default class JukeboxArea extends InteractableArea {
       this._queueSongById(command.youtubeId, command.player);
       return undefined as InteractableCommandReturnType<CommandType>;
     }
+    // The command for initiating a skip vote; does not submit a vote
     if (command.type === 'InitiateSongSkipVote') {
-      this._handleVote();
+      this.skipVotes = 0;
+      clearTimeout(this._voteEndTimeout);
+
+      this.isVoting = true;
+      // Ends the vote after 20 seconds
+      this._voteEndTimeout = setTimeout(() => {
+        this.isVoting = false;
+      }, 20000);
       return undefined as InteractableCommandReturnType<CommandType>;
     }
+    // Is triggered when a user clicks on yes to skip a song
     if (command.type === 'VoteForSongSkip') {
       this._handleVote();
       return undefined as InteractableCommandReturnType<CommandType>;
@@ -259,6 +274,7 @@ export default class JukeboxArea extends InteractableArea {
       // occur during the next song.
       clearTimeout(this._songEndTimeout);
       this._songEnd();
+      this.isVoting = false;
     }
     this._emitAreaChanged();
   }

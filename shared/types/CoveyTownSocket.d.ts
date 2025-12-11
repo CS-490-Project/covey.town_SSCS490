@@ -50,6 +50,7 @@ export type Song = {
 export interface JukeboxArea extends Interactable {
   songQueue: Song[];
   skipVotes: number;
+  isVoting: boolean;
 }
 
 export type TownSettingsUpdate = {
@@ -291,13 +292,11 @@ export interface QueueSongCommand {
 }
 export interface InitiateSongSkipVoteCommand {
   type: "InitiateSongSkipVote";
-  song: Song;
   player: Player;
 }
 export interface VoteForSongSkipCommand {
   type: "VoteForSongSkip";
-  song: Song;
-  skipThisSong: boolean;
+  player: Player;
 }
 export type InteractableCommandReturnType<
   CommandType extends InteractableCommand
